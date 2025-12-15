@@ -1,1 +1,1 @@
-# Vulnerabilities-in-AI-generated-websites
+# Vulnerabilities-in-AI-generated-webapplications
