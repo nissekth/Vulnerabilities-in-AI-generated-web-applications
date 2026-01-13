@@ -1,0 +1,39 @@
+{
+  "name": "owasp-firebase-security-scanner",
+  "version": "3.0.0",
+  "description": "OWASP Top 10:2021 (A01-A03) Security Scanner for Firebase SPAs",
+  "main": "scanner.js",
+  "bin": {
+    "firebase-security-scan": "./scanner.js"
+  },
+  "scripts": {
+    "scan": "node scanner.js",
+    "scan:config": "node scanner.js --config",
+    "live": "node modules/live-scanner.js",
+    "browser": "node modules/browser-scanner.js",
+    "help": "node scanner.js --help"
+  },
+  "keywords": [
+    "security",
+    "owasp",
+    "firebase",
+    "vulnerability-scanner",
+    "penetration-testing",
+    "sast",
+    "dast"
+  ],
+  "author": "Security Scanner",
+  "license": "MIT",
+  "dependencies": {
+    "firebase": "^10.7.0",
+    "puppeteer": "^21.6.0",
+    "yaml": "^2.3.4"
+  },
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "^5.0.0",
+    "uuid": "^13.0.0"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}

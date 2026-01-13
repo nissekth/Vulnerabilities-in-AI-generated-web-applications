@@ -1,0 +1,74 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Public site config (only owner can write)
+    match /config/{docId} {
+      allow read: if true;
+      allow write: if request.auth != null && request.auth.uid == "7qCRpIovrWSKqs0GEaLwJKgQIuj1";
+    }
+
+    // Users collection
+    match /users/{userId} {
+      allow read: if true; // public profiles
+
+      allow create: if request.auth != null && request.auth.uid == userId;
+
+      allow update, delete: if request.auth != null && request.auth.uid == userId
+        && !(userId == "7qCRpIovrWSKqs0GEaLwJKgQIuj1" && request.resource.data.role != resource.data.role); // owner role cannot be changed by themselves
+
+      // allow owner to update anyone (e.g. roles)
+      allow update: if request.auth != null
+        && request.auth.uid == "7qCRpIovrWSKqs0GEaLwJKgQIuj1";
+
+      // referral invites subcollection
+      match /referralInvites/{inviteId} {
+        allow create, read: if request.auth != null && request.auth.uid == userId;
+        allow delete: if request.auth != null && request.auth.uid == userId
+          || request.auth.uid == "7qCRpIovrWSKqs0GEaLwJKgQIuj1";
+      }
+    }
+
+    // Posts
+    match /posts/{postId} {
+      allow read: if true;
+      allow create: if request.auth != null
+        && request.resource.data.authorId == request.auth.uid;
+      allow update, delete: if request.auth != null
+        && (request.auth.uid == resource.data.authorId
+          || request.auth.uid == "7qCRpIovrWSKqs0GEaLwJKgQIuj1");
+
+      // likes
+      match /likes/{likeId} {
+        allow read: if true;
+        allow create, delete: if request.auth != null
+          && likeId == request.auth.uid;
+      }
+
+      // comments
+      match /comments/{commentId} {
+        allow read: if true;
+        allow create: if request.auth != null
+          && request.resource.data.authorId == request.auth.uid;
+        allow delete: if request.auth != null
+          && (request.auth.uid == resource.data.authorId
+            || request.auth.uid == "7qCRpIovrWSKqs0GEaLwJKgQIuj1");
+      }
+    }
+
+    // Conversations and messages
+    match /conversations/{convId} {
+      allow read, write: if request.auth != null
+        && request.resource.data.participants.hasAll([request.auth.uid]);
+
+      match /messages/{messageId} {
+        allow read, create: if request.auth != null;
+      }
+    }
+
+    // Generic read for other docs (e.g. for admin/owner)
+    match /{document=**} {
+      allow read: if true;
+    }
+  }
+}

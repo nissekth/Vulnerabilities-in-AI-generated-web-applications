@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>My Social App</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body class="theme-light">
+  <header>
+    <h1>My Social App</h1>
+    <nav id="nav-bar">
+      <button data-section="welcome-section">Welcome</button>
+      <button data-section="feed-section" class="nav-auth-only">Feed</button>
+      <button data-section="profile-section" class="nav-auth-only">My Profile</button>
+      <button data-section="friends-section" class="nav-auth-only">Friends</button>
+      <button data-section="dms-section" class="nav-auth-only">DMs</button>
+      <button data-section="billing-section" class="nav-auth-only">Billing</button>
+      <button data-section="settings-section" class="nav-auth-only">Settings</button>
+      <button data-section="admin-section" class="nav-admin-only">Admin</button>
+      <button data-section="owner-section" class="nav-owner-only">Owner</button>
+      <button id="logout-btn" class="nav-auth-only">Logout</button>
+    </nav>
+    <div id="current-user-display"></div>
+  </header>
+
+  <main>
+    <!-- AUTH SECTIONS -->
+    <section id="auth-section">
+      <div class="auth-columns">
+        <div>
+          <h2>Login</h2>
+          <form id="login-form">
+            <label>Email <input type="email" id="login-email" required /></label>
+            <label>Password <input type="password" id="login-password" required /></label>
+            <label><input type="checkbox" id="login-remember" /> Remember me</label>
+            <button type="submit">Login</button>
+          </form>
+          <button id="forgot-password-btn">I forgot my password</button>
+          <p><button id="admin-login-toggle">Admin login page</button></p>
+        </div>
+
+        <div>
+          <h2>Register</h2>
+          <form id="register-form">
+            <label>Email <input type="email" id="register-email" required /></label>
+            <label>Password <input type="password" id="register-password" required /></label>
+            <label>Display name <input type="text" id="register-display-name" required /></label>
+            <label>Referral code (optional) <input type="text" id="register-referral" /></label>
+            <button type="submit">Create account</button>
+          </form>
+        </div>
+      </div>
+
+      <div id="admin-login-section" class="hidden">
+        <h2>Admin Login</h2>
+        <p>Admins can also use their usual email/password here.</p>
+        <form id="admin-login-form">
+          <label>Email <input type="email" id="admin-login-email" required /></label>
+          <label>Password <input type="password" id="admin-login-password" required /></label>
+          <label><input type="checkbox" id="admin-login-remember" /> Remember me</label>
+          <button type="submit">Login as Admin</button>
+        </form>
+      </div>
+    </section>
+
+    <!-- WELCOME / PUBLIC SECTION -->
+    <section id="welcome-section" class="hidden">
+      <h2>Welcome</h2>
+      <p>You are not logged in. You can browse some public profiles.</p>
+      <div>
+        <h3>Search users</h3>
+        <form id="public-search-form">
+          <input type="text" id="public-search-query" placeholder="Search by display name" />
+          <button type="submit">Search</button>
+        </form>
+        <div id="public-search-results"></div>
+      </div>
+      <div id="public-profile-view"></div>
+    </section>
+
+    <!-- FEED SECTION -->
+    <section id="feed-section" class="hidden">
+      <h2>Main Feed</h2>
+      <form id="new-post-form">
+        <textarea id="new-post-text" maxlength="280" placeholder="What's happening?" required></textarea>
+        <div>
+          <label>Attach image <input type="file" id="new-post-image" accept="image/*" /></label>
+        </div>
+        <div>
+          <label>
+            Visibility:
+            <select id="new-post-visibility">
+              <option value="public">Public</option>
+              <option value="friends">Friends only</option>
+            </select>
+          </label>
+        </div>
+        <button type="submit">Post</button>
+      </form>
+      <h3>Feed</h3>
+      <div id="feed-posts"></div>
+    </section>
+
+    <!-- PROFILE SECTION -->
+    <section id="profile-section" class="hidden">
+      <h2>My Profile</h2>
+      <div id="my-profile-preview"></div>
+
+      <h3>Profile settings</h3>
+      <form id="profile-form">
+        <label>Real name <input type="text" id="profile-real-name" /></label>
+        <label>Age <input type="number" id="profile-age" min="0" /></label>
+        <label>City <input type="text" id="profile-city" /></label>
+        <label>Country <input type="text" id="profile-country" /></label>
+        <label>About me <textarea id="profile-about"></textarea></label>
+        <label>
+          Banner
+          <select id="profile-banner">
+            <option value="default">Default</option>
+            <option value="mountains">Mountains</option>
+            <option value="city">City</option>
+            <option value="forest">Forest</option>
+          </select>
+        </label>
+        <label>Profile picture <input type="file" id="profile-picture" accept="image/*" /></label>
+        <button type="submit">Save profile</button>
+      </form>
+
+      <h3>My Gallery</h3>
+      <form id="gallery-album-form">
+        <label>New album name <input type="text" id="gallery-new-album-name" /></label>
+        <button type="submit">Create album</button>
+      </form>
+      <div id="gallery-albums"></div>
+    </section>
+
+    <!-- SETTINGS SECTION -->
+    <section id="settings-section" class="hidden">
+      <h2>Settings</h2>
+      <form id="settings-form">
+        <label>
+          Theme:
+          <select id="settings-theme">
+            <option value="theme-light">Light</option>
+            <option value="theme-dark">Dark</option>
+            <option value="theme-blue">Blue</option>
+          </select>
+        </label>
+        <label>Display name <input type="text" id="settings-display-name" /></label>
+        <button type="submit">Save settings</button>
+      </form>
+
+      <h3>Download my data</h3>
+      <button id="download-data-btn">Download JSON</button>
+      <a id="download-data-link" class="hidden">Download ready</a>
+
+      <h3>Delete my account</h3>
+      <button id="delete-account-btn">Delete account permanently</button>
+    </section>
+
+    <!-- FRIENDS SECTION -->
+    <section id="friends-section" class="hidden">
+      <h2>Friends</h2>
+      <div id="friends-list"></div>
+
+      <h3>People you may know</h3>
+      <div id="friends-suggestions"></div>
+    </section>
+
+    <!-- DMs SECTION -->
+    <section id="dms-section" class="hidden">
+      <h2>Direct Messages</h2>
+      <form id="dm-start-form">
+        <label>Friend UID <input type="text" id="dm-target-uid" placeholder="Paste friend UID here" /></label>
+        <button type="submit">Open conversation</button>
+      </form>
+      <div id="dm-thread-info"></div>
+      <div id="dm-messages"></div>
+      <form id="dm-send-form" class="hidden">
+        <textarea id="dm-message-text" placeholder="Write a message"></textarea>
+        <button type="submit">Send</button>
+      </form>
+    </section>
+
+    <!-- BILLING SECTION -->
+    <section id="billing-section" class="hidden">
+      <h2>Billing information (no actual payments)</h2>
+      <form id="billing-form">
+        <label>Full name <input type="text" id="billing-name" /></label>
+        <label>Address <input type="text" id="billing-address" /></label>
+        <label>City <input type="text" id="billing-city" /></label>
+        <label>Country <input type="text" id="billing-country" /></label>
+        <label>Card type (just info) <input type="text" id="billing-card-type" /></label>
+        <button type="submit">Save billing info</button>
+      </form>
+    </section>
+
+    <!-- ADMIN SECTION -->
+    <section id="admin-section" class="hidden">
+      <h2>Admin panel</h2>
+      <p>Admins can view all users and moderate posts and comments.</p>
+
+      <h3>Users</h3>
+      <div id="admin-users-list"></div>
+
+      <h3>All posts</h3>
+      <div id="admin-posts-list"></div>
+    </section>
+
+    <!-- OWNER SECTION -->
+    <section id="owner-section" class="hidden">
+      <h2>Owner panel</h2>
+      <p>This page is visible only to the site owner.</p>
+      <div id="owner-stats"></div>
+
+      <h3>Site controls</h3>
+      <p>(For now this just shows stats and a “site disabled” flag in Firestore.)</p>
+      <label>
+        <input type="checkbox" id="owner-site-disabled" />
+        Disable site for everyone (except owner)
+      </label>
+      <button id="owner-save-settings-btn">Save site settings</button>
+    </section>
+
+    <!-- REFERRAL SECTION (inside profile, but separate block) -->
+    <section id="referral-section" class="hidden">
+      <h2>Referral Program</h2>
+      <p>Your referral points: <span id="referral-points">0</span></p>
+      <p>Status: <span id="referral-status-text"></span></p>
+      <button id="referral-generate-btn">Generate referral code (max 5 per month)</button>
+      <div id="referral-codes-list"></div>
+      <button id="referral-optout-btn">Delete my referral data and opt out</button>
+    </section>
+  </main>
+
+  <footer>
+    <p>&copy; <span id="year"></span> My Social App</p>
+  </footer>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
+

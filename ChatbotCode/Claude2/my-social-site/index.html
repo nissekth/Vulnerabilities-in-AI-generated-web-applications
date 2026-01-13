@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SocialConnect - Welcome</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Welcome/Landing Page -->
+        <div id="welcomePage" class="page active">
+            <header class="welcome-header">
+                <h1>Welcome to SocialConnect</h1>
+                <p>Connect with friends, share moments, build memories</p>
+            </header>
+            
+            <div class="welcome-actions">
+                <button onclick="showLogin()" class="btn-primary">Sign In</button>
+                <button onclick="showRegister()" class="btn-secondary">Register</button>
+            </div>
+
+            <div class="public-search">
+                <h2>Discover People</h2>
+                <input type="text" id="publicSearchInput" placeholder="Search for users...">
+                <button onclick="publicSearch()" class="btn-search">Search</button>
+                <div id="publicSearchResults"></div>
+            </div>
+        </div>
+
+        <!-- Login Page -->
+        <div id="loginPage" class="page">
+            <div class="auth-container">
+                <h2>Sign In</h2>
+                <form onsubmit="login(event)">
+                    <input type="email" id="loginEmail" placeholder="Email" required>
+                    <input type="password" id="loginPassword" placeholder="Password" required>
+                    <label class="remember-me">
+                        <input type="checkbox" id="rememberMe" checked>
+                        Remember me
+                    </label>
+                    <button type="submit" class="btn-primary">Sign In</button>
+                    <button type="button" onclick="forgotPassword()" class="btn-link">Forgot Password?</button>
+                    <button type="button" onclick="showWelcome()" class="btn-link">Back to Welcome</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Register Page -->
+        <div id="registerPage" class="page">
+            <div class="auth-container">
+                <h2>Register</h2>
+                <form onsubmit="register(event)">
+                    <input type="text" id="registerName" placeholder="Display Name" required>
+                    <input type="email" id="registerEmail" placeholder="Email" required>
+                    <input type="password" id="registerPassword" placeholder="Password (min 6 characters)" required minlength="6">
+                    <button type="submit" class="btn-primary">Register</button>
+                    <button type="button" onclick="showWelcome()" class="btn-link">Back to Welcome</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Admin Login Page -->
+        <div id="adminLoginPage" class="page">
+            <div class="auth-container">
+                <h2>Admin Sign In</h2>
+                <form onsubmit="adminLogin(event)">
+                    <input type="email" id="adminEmail" placeholder="Admin Email" required>
+                    <input type="password" id="adminPassword" placeholder="Admin Password" required>
+                    <button type="submit" class="btn-primary">Admin Sign In</button>
+                    <button type="button" onclick="showWelcome()" class="btn-link">Back to Welcome</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Main App (after login) -->
+        <div id="mainApp" class="page">
+            <nav class="main-nav">
+                <div class="nav-brand">SocialConnect</div>
+                <div class="nav-links">
+                    <a href="#" onclick="showFeed()">Feed</a>
+                    <a href="#" onclick="showMyProfile()">My Profile</a>
+                    <a href="#" onclick="showFriends()">Friends</a>
+                    <a href="#" onclick="showMessages()">Messages</a>
+                    <a href="#" onclick="showSearch()">Search</a>
+                    <a href="#" onclick="showSettings()">Settings</a>
+                    <a href="#" onclick="showBilling()">Billing</a>
+                    <a href="#" id="adminNavLink" style="display:none;" onclick="showAdminPanel()">Admin</a>
+                    <a href="#" id="ownerNavLink" style="display:none;" onclick="showOwnerPanel()">Owner</a>
+                    <a href="#" onclick="logout()">Sign Out</a>
+                </div>
+            </nav>
+
+            <!-- Feed Section -->
+            <div id="feedSection" class="section active">
+                <div class="create-post">
+                    <h3>What's on your mind?</h3>
+                    <textarea id="postContent" maxlength="280" placeholder="Share something... (280 characters max)"></textarea>
+                    <div class="char-count"><span id="charCount">0</span>/280</div>
+                    <input type="file" id="postImage" accept="image/*">
+                    <label class="visibility-toggle">
+                        <input type="checkbox" id="postVisibility">
+                        <span>Friends only</span>
+                    </label>
+                    <button onclick="createPost()" class="btn-primary">Post</button>
+                </div>
+                <div id="feedPosts"></div>
+            </div>
+
+            <!-- Profile Section -->
+            <div id="profileSection" class="section">
+                <div class="profile-header">
+                    <div id="profileBanner" class="profile-banner"></div>
+                    <img id="profilePicture" class="profile-picture" src="" alt="Profile">
+                    <h2 id="profileName"></h2>
+                    <p id="profileInfo"></p>
+                </div>
+                <div class="profile-about">
+                    <h3>About Me</h3>
+                    <p id="profileAbout"></p>
+                </div>
+                <div class="profile-posts">
+                    <h3>Posts</h3>
+                    <div id="profilePosts"></div>
+                </div>
+                <div class="profile-gallery">
+                    <h3>Photo Gallery</h3>
+                    <div id="profileGallery"></div>
+                </div>
+            </div>
+
+            <!-- Edit Profile Section -->
+            <div id="editProfileSection" class="section">
+                <h2>Edit Profile</h2>
+                <form onsubmit="updateProfile(event)">
+                    <label>Display Name:</label>
+                    <input type="text" id="editName" required>
+                    
+                    <label>Age:</label>
+                    <input type="number" id="editAge" min="13">
+                    
+                    <label>City:</label>
+                    <input type="text" id="editCity">
+                    
+                    <label>Country:</label>
+                    <input type="text" id="editCountry">
+                    
+                    <label>About Me:</label>
+                    <textarea id="editAbout" maxlength="500"></textarea>
+                    
+                    <label>Profile Picture:</label>
+                    <input type="file" id="editProfilePic" accept="image/*">
+                    
+                    <label>Profile Banner:</label>
+                    <select id="editBanner">
+                        <option value="gradient1">Ocean Gradient</option>
+                        <option value="gradient2">Sunset Gradient</option>
+                        <option value="gradient3">Forest Gradient</option>
+                        <option value="gradient4">Purple Galaxy</option>
+                        <option value="gradient5">Fire Gradient</option>
+                    </select>
+                    
+                    <button type="submit" class="btn-primary">Save Changes</button>
+                    <button type="button" onclick="showMyProfile()" class="btn-secondary">Cancel</button>
+                </form>
+            </div>
+
+            <!-- Friends Section -->
+            <div id="friendsSection" class="section">
+                <h2>My Friends</h2>
+                <div id="friendsList"></div>
+                <h3>People You May Know</h3>
+                <div id="suggestedFriends"></div>
+            </div>
+
+            <!-- Messages Section -->
+            <div id="messagesSection" class="section">
+                <div class="messages-container">
+                    <div class="conversations-list">
+                        <h3>Conversations</h3>
+                        <div id="conversationsList"></div>
+                    </div>
+                    <div class="message-thread">
+                        <div id="messageHeader"></div>
+                        <div id="messageThread"></div>
+                        <div class="message-input">
+                            <textarea id="messageContent" placeholder="Type a message..."></textarea>
+                            <button onclick="sendMessage()" class="btn-primary">Send</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Search Section -->
+            <div id="searchSection" class="section">
+                <h2>Search Users</h2>
+                <input type="text" id="searchInput" placeholder="Search for users...">
+                <button onclick="searchUsers()" class="btn-primary">Search</button>
+                <div id="searchResults"></div>
+            </div>
+
+            <!-- Settings Section -->
+            <div id="settingsSection" class="section">
+                <h2>Settings</h2>
+                
+                <div class="settings-group">
+                    <h3>Appearance</h3>
+                    <label>Theme:</label>
+                    <select id="themeSelect" onchange="changeTheme()">
+                        <option value="light">Light</option>
+                        <option value="dark">Dark</option>
+                        <option value="blue">Ocean Blue</option>
+                        <option value="green">Nature Green</option>
+                    </select>
+                </div>
+
+                <div class="settings-group">
+                    <h3>Profile Settings</h3>
+                    <button onclick="showEditProfile()" class="btn-secondary">Edit Profile</button>
+                </div>
+
+                <div class="settings-group">
+                    <h3>Referral System</h3>
+                    <p>Your referral points: <span id="referralPoints">0</span></p>
+                    <p>Invites remaining this month: <span id="invitesRemaining">5</span></p>
+                    <button onclick="generateReferralCode()" class="btn-primary">Generate Invite Code</button>
+                    <div id="referralCode"></div>
+                    <button onclick="optOutReferrals()" class="btn-secondary">Opt Out of Referral Program</button>
+                </div>
+
+                <div class="settings-group">
+                    <h3>Data & Privacy</h3>
+                    <button onclick="downloadData()" class="btn-secondary">Download My Data</button>
+                </div>
+
+                <div class="settings-group danger-zone">
+                    <h3>Danger Zone</h3>
+                    <button onclick="deleteAccount()" class="btn-danger">Delete Account</button>
+                </div>
+            </div>
+
+            <!-- Billing Section -->
+            <div id="billingSection" class="section">
+                <h2>Billing Information</h2>
+                <p>Note: Payments are processed by our payment partner.</p>
+                <form onsubmit="updateBilling(event)">
+                    <label>Billing Name:</label>
+                    <input type="text" id="billingName">
+                    
+                    <label>Address:</label>
+                    <input type="text" id="billingAddress">
+                    
+                    <label>City:</label>
+                    <input type="text" id="billingCity">
+                    
+                    <label>Country:</label>
+                    <input type="text" id="billingCountry">
+                    
+                    <button type="submit" class="btn-primary">Save Billing Info</button>
+                </form>
+            </div>
+
+            <!-- Admin Panel -->
+            <div id="adminSection" class="section">
+                <h2>Admin Panel</h2>
+                <div class="admin-tabs">
+                    <button onclick="showAdminUsers()" class="btn-tab active">Users</button>
+                    <button onclick="showAdminPosts()" class="btn-tab">Posts</button>
+                </div>
+                <div id="adminContent"></div>
+            </div>
+
+            <!-- Owner Panel -->
+            <div id="ownerSection" class="section">
+                <h2>Owner Dashboard</h2>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3>Total Users</h3>
+                        <p id="statTotalUsers">0</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Active Today</h3>
+                        <p id="statActiveToday">0</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Total Posts</h3>
+                        <p id="statTotalPosts">0</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Total Photos</h3>
+                        <p id="statTotalPhotos">0</p>
+                    </div>
+                </div>
+                <div class="owner-actions">
+                    <h3>Owner Actions</h3>
+                    <button onclick="exportAllData()" class="btn-secondary">Export All Data</button>
+                    <p class="warning">⚠️ Critical actions like site deletion should be done through Firebase Console</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
+    
+    <script src="config.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

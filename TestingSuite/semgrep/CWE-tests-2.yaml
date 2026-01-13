@@ -1,0 +1,2138 @@
+rules:
+  # ============================================================================
+  # OWASP TOP 10:2021 - A01: BROKEN ACCESS CONTROL
+  # JavaScript/JSX/TypeScript Source Code Analysis
+  # ============================================================================
+  # Applicable CWEs: 22, 23, 200, 201, 276, 284, 285, 352, 359, 425, 441,
+  #                  497, 540, 548, 552, 601, 639, 668, 706, 862, 863, 913, 922, 1275
+  # ============================================================================
+
+  # ---------------------------------------------------------------------------
+  # CWE-22, CWE-23: Path Traversal
+  # ---------------------------------------------------------------------------
+  - id: path-traversal-fs-read
+    mode: taint
+    message: |
+      Potential path traversal vulnerability. User input flows into file read operation
+      without proper sanitization. Attackers could access files outside the intended directory.
+      CWE-22: Path Traversal
+    metadata:
+      cwe: "CWE-22: Improper Limitation of a Pathname to a Restricted Directory"
+      owasp: "A01:2021 - Broken Access Control"
+      category: security
+      confidence: HIGH
+      likelihood: HIGH
+      impact: HIGH
+    severity: ERROR
+    languages: [javascript, typescript]
+    pattern-sources:
+      - patterns:
+          - pattern-either:
+              - pattern: req.params.$PARAM
+              - pattern: req.query.$PARAM
+              - pattern: req.body.$PARAM
+              - pattern: $REQ.params.$PARAM
+              - pattern: $REQ.query.$PARAM
+    pattern-sinks:
+      - patterns:
+          - pattern-either:
+              - pattern: fs.readFile($PATH, ...)
+              - pattern: fs.readFileSync($PATH, ...)
+              - pattern: fs.readdir($PATH, ...)
+              - pattern: fs.readdirSync($PATH, ...)
+              - pattern: fs.stat($PATH, ...)
+              - pattern: fs.statSync($PATH, ...)
+              - pattern: fs.createReadStream($PATH, ...)
+              - pattern: require('fs').readFile($PATH, ...)
+              - pattern: require('fs').readFileSync($PATH, ...)
+    pattern-sanitizers:
+      - patterns:
+          - pattern-either:
+              - pattern: path.basename(...)
+              - pattern: $X.replace(/\.\./g, ...)
+              - pattern: $X.includes('..') ? ... : ...
+
+  - id: path-traversal-fs-write
+    mode: taint
+    message: |
+      Potential path traversal in file write operation. User input flows into 
+      file path without sanitization. Attackers could overwrite arbitrary files.
+      CWE-23: Relative Path Traversal
+    metadata:
+      cwe: "CWE-23: Relative Path Traversal"
+      owasp: "A01:2021 - Broken Access Control"
+      category: security
+      confidence: HIGH
+      likelihood: HIGH
+      impact: HIGH
+    severity: ERROR
+    languages: [javascript, typescript]
+    pattern-sources:
+      - patterns:
+          - pattern-either:
+              - pattern: req.params.$PARAM
+              - pattern: req.query.$PARAM
+              - pattern: req.body.$PARAM
+    pattern-sinks:
+      - patterns:
+          - pattern-either:
+              - pattern: fs.writeFile($PATH, ...)
+              - pattern: fs.writeFileSync($PATH, ...)
+              - pattern: fs.appendFile($PATH, ...)
+              - pattern: fs.appendFileSync($PATH, ...)
+              - pattern: fs.createWriteStream($PATH, ...)
+              - pattern: fs.unlink($PATH, ...)
+              - pattern: fs.unlinkSync($PATH, ...)
+    pattern-sanitizers:
+      - patterns:
+          - pattern-either:
+              - pattern: path.basename(...)
+              - pattern: path.join($SAFE_DIR, path.basename(...))
+
+  # ---------------------------------------------------------------------------
+  # CWE-200: Exposure of Sensitive Information to an Unauthorized Actor
+  # ---------------------------------------------------------------------------
+  - id: error-stack-exposure
+    patterns:
+      - pattern-either:
+          - pattern: res.send($ERR.stack)
+          - pattern: res.json({..., stack: $ERR.stack, ...})
+          - pattern: res.status($CODE).send($ERR.stack)
+          - pattern: res.status($CODE).json({..., stack: $ERR.stack, ...})
+          - pattern: $RESPONSE.send($ERR.stack)
+    message: |
+      Error stack trace exposed in HTTP response. This reveals internal 
+      application structure to attackers. Log errors server-side, return generic messages.
+      CWE-200: Exposure of Sensitive Information
+    metadata:
+      cwe: "CWE-200: Exposure of Sensitive Information to an Unauthorized Actor"
+      owasp: "A01:2021 - Broken Access Control"
+      category: security
+      confidence: HIGH
+      likelihood: MEDIUM
+      impact: MEDIUM
+    severity: WARNING
+    languages: [javascript, typescript]
+
+  - id: console-log-sensitive-data
+    patterns:
+      - pattern-either:
+          - pattern: console.log(..., $OBJ.password, ...)
+          - pattern: console.log(..., $OBJ.token, ...)
+          - pattern: console.log(..., $OBJ.secret, ...)
+          - pattern: console.log(..., $OBJ.apiKey, ...)
+          - pattern: console.log(..., $OBJ.creditCard, ...)
+          - pattern: console.log(..., $OBJ.ssn, ...)
+          - pattern: console.log(..., $OBJ.accessToken, ...)
+          - pattern: console.error(..., $OBJ.password, ...)
+    message: |
+      Sensitive data logged to console. Remove or mask sensitive fields before logging.
+      CWE-200: Exposure of Sensitive Information
+    metadata:
+      cwe: "CWE-200: Exposure of Sensitive Information to an Unauthorized Actor"
+      owasp: "A01:2021 - Broken Access Control"
+      category: security
+      confidence: MEDIUM
+      likelihood: MEDIUM
+      impact: MEDIUM
+    severity: WARNING
+    languages: [javascript, typescript, jsx, tsx]
+
+  # ---------------------------------------------------------------------------
+  # CWE-201: Exposure of Sensitive Information Through Sent Data
+  # ---------------------------------------------------------------------------
+  - id: sensitive-data-in-response
+    patterns:
+      - pattern-either:
+          - pattern: res.json({..., password: $VAL, ...})
+          - pattern: res.json({..., passwordHash: $VAL, ...})
+          - pattern: res.json({..., secret: $VAL, ...})
+          - pattern: res.json({..., apiKey: $VAL, ...})
+          - pattern: res.json({..., creditCardNumber: $VAL, ...})
+          - pattern: res.json({..., ssn: $VAL, ...})
+          - pattern: res.send({..., password: $VAL, ...})
+    message: |
+      Sensitive data included in API response. Never return passwords, secrets, or PII.
+      CWE-201: Exposure of Sensitive Information Through Sent Data
+    metadata:
+      cwe: "CWE-201: Exposure of Sensitive Information Through Sent Data"
+      owasp: "A01:2021 - Broken Access Control"
+      category: security
+      confidence: HIGH
+      likelihood: MEDIUM
+      impact: HIGH
+    severity: ERROR
+    languages: [javascript, typescript]
+
+  # ---------------------------------------------------------------------------
+  # CWE-284: Improper Access Control
+  # ---------------------------------------------------------------------------
+  - id: firebase-missing-auth-write
+    patterns:
+      - pattern-either:
+          - pattern: |
+              async function $FUNC(...) {
+                ...
+                await updateDoc(doc($DB, $COLL, $ID), $DATA)
+                ...
+              }
+          - pattern: |
+              async function $FUNC(...) {
+                ...
+                await setDoc(doc($DB, $COLL, $ID), $DATA)
+                ...
+              }
+          - pattern: |
+              async function $FUNC(...) {
+                ...
+                await deleteDoc(doc($DB, $COLL, $ID))
+                ...
+              }
+      - pattern-not-inside: |
+          if ($AUTH.currentUser) { ... }
+      - pattern-not-inside: |
+          if (auth.currentUser) { ... }
+      - pattern-not-inside: |
+          if (currentUser) { ... }
+    message: |
+      Firestore write operation without authentication check in code.
+      While Firestore rules provide server-side protection, client code should
+      also verify authentication to provide better UX and defense in depth.
+      CWE-284: Improper Access Control
+    metadata:
+      cwe: "CWE-284: Improper Access Control"
+      owasp: "A01:2021 - Broken Access Control"
+      category: security
+      confidence: MEDIUM
+      likelihood: MEDIUM
+      impact: MEDIUM
+    severity: WARNING
+    languages: [javascript, typescript, jsx, tsx]
+
+  # ---------------------------------------------------------------------------
+  # CWE-285: Improper Authorization
+  # ---------------------------------------------------------------------------
+  - id: firebase-cross-user-modification
+    patterns:
+      - pattern-either:
+          - pattern: updateDoc(doc($DB, 'users', $USER_ID), $DATA)
+          - pattern: setDoc(doc($DB, 'users', $USER_ID), $DATA)
+          - pattern: deleteDoc(doc($DB, 'users', $USER_ID))
+      - pattern-not-inside: |
+          if ($USER_ID === $AUTH.currentUser.uid) { ... }
+      - pattern-not-inside: |
+          if ($USER_ID === auth.currentUser.uid) { ... }
+      - pattern-not-inside: |
+          if ($USER_ID === currentUser.uid) { ... }
+    message: |
+      User document modification without ownership verification.
+      Ensure the user can only modify their own documents.
+      CWE-285: Improper Authorization
+    metadata:
+      cwe: "CWE-285: Improper Authorization"
+      owasp: "A01:2021 - Broken Access Control"
+      category: security
+      confidence: MEDIUM
+      likelihood: MEDIUM
+      impact: HIGH
+    severity: WARNING
+    languages: [javascript, typescript, jsx, tsx]
+
+  # ---------------------------------------------------------------------------
+  # CWE-352: Cross-Site Request Forgery (CSRF)
+  # ---------------------------------------------------------------------------
+  - id: cors-allow-all-origins
+    patterns:
+      - pattern-either:
+          - pattern: cors({ origin: '*' })
+          - pattern: cors({ origin: true })
+          - pattern: res.setHeader('Access-Control-Allow-Origin', '*')
+          - pattern: res.header('Access-Control-Allow-Origin', '*')
+          - pattern: res.set('Access-Control-Allow-Origin', '*')
+    message: |
+      CORS allows all origins. This can enable CSRF and data theft attacks.
+      Restrict to specific trusted domains.
+      CWE-352: Cross-Site Request Forgery
+    metadata:
+      cwe: "CWE-352: Cross-Site Request Forgery (CSRF)"
+      owasp: "A01:2021 - Broken Access Control"
+      category: security
+      confidence: HIGH
+      likelihood: MEDIUM
+      impact: MEDIUM
+    severity: WARNING
+    languages: [javascript, typescript]
+
+  - id: cors-credentials-with-wildcard
+    patterns:
+      - pattern: cors({ origin: '*', credentials: true })
+    message: |
+      CORS with credentials and wildcard origin is a security risk.
+      Browsers will block this, but it indicates a misconfiguration.
+      CWE-352: Cross-Site Request Forgery
+    metadata:
+      cwe: "CWE-352: Cross-Site Request Forgery (CSRF)"
+      owasp: "A01:2021 - Broken Access Control"
+      category: security
+      confidence: HIGH
+      likelihood: LOW
+      impact: HIGH
+    severity: ERROR
+    languages: [javascript, typescript]
+
+  # ---------------------------------------------------------------------------
+  # CWE-359: Exposure of Private Personal Information
+  # ---------------------------------------------------------------------------
+  - id: pii-in-url-params
+    patterns:
+      - pattern-either:
+          - pattern: fetch(`...?email=${$EMAIL}...`)
+          - pattern: fetch(`...?phone=${$PHONE}...`)
+          - pattern: fetch(`...?ssn=${$SSN}...`)
+          - pattern: axios.get(`...?email=${$EMAIL}...`)
+          - pattern: $HTTP.get(`...?password=${$PASS}...`)
+    message: |
+      PII included in URL query parameters. URLs are logged in browser history,
+      server logs, and can leak via Referer headers. Use POST body instead.
+      CWE-359: Exposure of Private Personal Information
+    metadata:
+      cwe: "CWE-359: Exposure of Private Personal Information to an Unauthorized Actor"
+      owasp: "A01:2021 - Broken Access Control"
+      category: security
+      confidence: HIGH
+      likelihood: MEDIUM
+      impact: HIGH
+    severity: ERROR
+    languages: [javascript, typescript, jsx, tsx]
+
+  # ---------------------------------------------------------------------------
+  # CWE-425: Direct Request (Forced Browsing)
+  # ---------------------------------------------------------------------------
+  - id: unprotected-admin-route
+    patterns:
+      - pattern-either:
+          - pattern: |
+              app.get('/admin$PATH', (req, res) => { ... })
+          - pattern: |
+              app.post('/admin$PATH', (req, res) => { ... })
+          - pattern: |
+              router.get('/admin$PATH', (req, res) => { ... })
+          - pattern: |
+              app.get('/api/admin$PATH', (req, res) => { ... })
+      - pattern-not-inside: |
+          app.use('/admin', $AUTH_MIDDLEWARE)
+      - pattern-not-inside: |
+          app.$METHOD($PATH, $AUTH_MIDDLEWARE, ...)
+    message: |
+      Admin route defined without authentication middleware.
+      Ensure all admin routes require authentication and authorization.
+      CWE-425: Direct Request (Forced Browsing)
+    metadata:
+      cwe: "CWE-425: Direct Request ('Forced Browsing')"
+      owasp: "A01:2021 - Broken Access Control"
+      category: security
+      confidence: MEDIUM
+      likelihood: MEDIUM
+      impact: HIGH
+    severity: ERROR
+    languages: [javascript, typescript]
+
+  # ---------------------------------------------------------------------------
+  # CWE-441: Unintended Proxy or Intermediary (SSRF)
+  # ---------------------------------------------------------------------------
+  - id: ssrf-fetch-user-url
+    mode: taint
+    message: |
+      Server-side request using user-controlled URL (SSRF).
+      Attackers could access internal services or scan internal networks.
+      Validate URL against allowlist of permitted hosts.
+      CWE-441: Unintended Proxy or Intermediary
+    metadata:
+      cwe: "CWE-441: Unintended Proxy or Intermediary ('Confused Deputy')"
+      owasp: "A01:2021 - Broken Access Control"
+      category: security
+      confidence: HIGH
+      likelihood: HIGH
+      impact: HIGH
+    severity: ERROR
+    languages: [javascript, typescript]
+    pattern-sources:
+      - patterns:
+          - pattern-either:
+              - pattern: req.query.$URL
+              - pattern: req.body.$URL
+              - pattern: req.params.$URL
+    pattern-sinks:
+      - patterns:
+          - pattern-either:
+              - pattern: fetch($URL)
+              - pattern: axios.get($URL)
+              - pattern: axios.post($URL, ...)
+              - pattern: axios($URL)
+              - pattern: http.get($URL, ...)
+              - pattern: https.get($URL, ...)
+              - pattern: request($URL, ...)
+              - pattern: got($URL)
+
+  # ---------------------------------------------------------------------------
+  # CWE-497: Exposure of Sensitive System Information
+  # ---------------------------------------------------------------------------
+  - id: system-info-in-response
+    patterns:
+      - pattern-either:
+          - pattern: res.json({..., env: process.env, ...})
+          - pattern: res.json({..., nodeVersion: process.version, ...})
+          - pattern: res.json({..., config: $CONFIG, ...})
+          - pattern: res.send(process.env)
+    message: |
+      System information exposed in API response. This helps attackers
+      understand the application environment.
+      CWE-497: Exposure of Sensitive System Information
+    metadata:
+      cwe: "CWE-497: Exposure of Sensitive System Information to an Unauthorized Control Sphere"
+      owasp: "A01:2021 - Broken Access Control"
+      category: security
+      confidence: HIGH
+      likelihood: MEDIUM
+      impact: MEDIUM
+    severity: WARNING
+    languages: [javascript, typescript]
+
+  # ---------------------------------------------------------------------------
+  # CWE-540: Inclusion of Sensitive Information in Source Code
+  # ---------------------------------------------------------------------------
+  - id: hardcoded-secret-key
+    patterns:
+      - pattern-either:
+          - pattern: |
+              const $SECRET = "..."
+          - pattern: |
+              let $SECRET = "..."
+          - pattern: |
+              var $SECRET = "..."
+      - metavariable-regex:
+          metavariable: $SECRET
+          regex: '(?i).*(secret|apikey|api_key|password|token|auth_token|private_key|encryption_key).*'
+      - pattern-not: |
+          const $SECRET = process.env.$VAR
+      - pattern-not: |
+          const $SECRET = ""
+    message: |
+      Hard-coded secret in source code. Secrets should be stored in environment
+      variables or a secrets manager, not committed to source control.
+      CWE-540: Inclusion of Sensitive Information in Source Code
+    metadata:
+      cwe: "CWE-540: Inclusion of Sensitive Information in Source Code"
+      owasp: "A01:2021 - Broken Access Control"
+      category: security
+      confidence: MEDIUM
+      likelihood: HIGH
+      impact: HIGH
+    severity: ERROR
+    languages: [javascript, typescript, jsx, tsx]
+
+  # ---------------------------------------------------------------------------
+  # CWE-601: URL Redirection to Untrusted Site (Open Redirect)
+  # ---------------------------------------------------------------------------
+  - id: open-redirect-express
+    mode: taint
+    message: |
+      Open redirect vulnerability. User input used in redirect URL.
+      Attackers can redirect users to malicious sites for phishing.
+      Validate URL against allowlist or use relative paths only.
+      CWE-601: URL Redirection to Untrusted Site
+    metadata:
+      cwe: "CWE-601: URL Redirection to Untrusted Site ('Open Redirect')"
+      owasp: "A01:2021 - Broken Access Control"
+      category: security
+      confidence: HIGH
+      likelihood: HIGH
+      impact: MEDIUM
+    severity: ERROR
+    languages: [javascript, typescript]
+    pattern-sources:
+      - patterns:
+          - pattern-either:
+              - pattern: req.query.$PARAM
+              - pattern: req.body.$PARAM
+              - pattern: req.params.$PARAM
+    pattern-sinks:
+      - patterns:
+          - pattern-either:
+              - pattern: res.redirect($URL)
+              - pattern: res.redirect($CODE, $URL)
+    pattern-sanitizers:
+      - patterns:
+          - pattern-either:
+              - pattern: $URL.startsWith('/')
+              - pattern: $ALLOWLIST.includes($URL)
+
+  - id: open-redirect-client
+    patterns:
+      - pattern-either:
+          - pattern: window.location = $URL
+          - pattern: window.location.href = $URL
+          - pattern: location.href = $URL
+          - pattern: location.assign($URL)
+          - pattern: location.replace($URL)
+      - pattern-not-inside: |
+          if ($URL.startsWith('/')) { ... }
+      - pattern-not-inside: |
+          if ($URL.startsWith($SAFE_ORIGIN)) { ... }
+      - pattern-not-inside: |
+          const $URL = "..."
+    message: |
+      Client-side redirect with potentially untrusted URL.
+      Validate URL is relative or matches trusted domain.
+      CWE-601: URL Redirection to Untrusted Site
+    metadata:
+      cwe: "CWE-601: URL Redirection to Untrusted Site ('Open Redirect')"
+      owasp: "A01:2021 - Broken Access Control"
+      category: security
+      confidence: MEDIUM
+      likelihood: MEDIUM
+      impact: MEDIUM
+    severity: WARNING
+    languages: [javascript, typescript, jsx, tsx]
+
+  # ---------------------------------------------------------------------------
+  # CWE-639: Authorization Bypass Through User-Controlled Key (IDOR)
+  # ---------------------------------------------------------------------------
+  - id: idor-document-access
+    patterns:
+      - pattern-either:
+          - pattern: |
+              const { $ID } = useParams()
+              ...
+              getDoc(doc($DB, $COLL, $ID))
+          - pattern: |
+              const $ID = req.params.$PARAM
+              ...
+              getDoc(doc($DB, $COLL, $ID))
+      - pattern-not-inside: |
+          if ($ID === $AUTH.currentUser.uid) { ... }
+    message: |
+      Document accessed using URL parameter without ownership verification.
+      This is a potential IDOR vulnerability where attackers can access
+      other users' data by changing the ID.
+      CWE-639: Authorization Bypass Through User-Controlled Key
+    metadata:
+      cwe: "CWE-639: Authorization Bypass Through User-Controlled Key"
+      owasp: "A01:2021 - Broken Access Control"
+      category: security
+      confidence: MEDIUM
+      likelihood: HIGH
+      impact: HIGH
+    severity: WARNING
+    languages: [javascript, typescript, jsx, tsx]
+
+  # ---------------------------------------------------------------------------
+  # CWE-668: Exposure of Resource to Wrong Sphere
+  # ---------------------------------------------------------------------------
+  - id: debug-endpoint-exposed
+    patterns:
+      - pattern-either:
+          - pattern: app.get('/debug$PATH', ...)
+          - pattern: app.get('/internal$PATH', ...)
+          - pattern: app.get('/metrics', ...)
+          - pattern: app.get('/health', ...)
+          - pattern: router.get('/debug$PATH', ...)
+    message: |
+      Debug/internal endpoint exposed. Ensure these endpoints are protected
+      or disabled in production.
+      CWE-668: Exposure of Resource to Wrong Sphere
+    metadata:
+      cwe: "CWE-668: Exposure of Resource to Wrong Sphere"
+      owasp: "A01:2021 - Broken Access Control"
+      category: security
+      confidence: LOW
+      likelihood: MEDIUM
+      impact: MEDIUM
+    severity: INFO
+    languages: [javascript, typescript]
+
+  # ---------------------------------------------------------------------------
+  # CWE-706: Use of Incorrectly-Resolved Name or Reference (Prototype Pollution)
+  # ---------------------------------------------------------------------------
+  - id: prototype-pollution-merge
+    patterns:
+      - pattern-either:
+          - pattern: Object.assign($TARGET, $USER_INPUT)
+          - pattern: _.merge($TARGET, $USER_INPUT)
+          - pattern: _.extend($TARGET, $USER_INPUT)
+          - pattern: $.extend(true, $TARGET, $USER_INPUT)
+          - pattern: |
+              { ...$TARGET, ...$USER_INPUT }
+    message: |
+      Object merge with potentially user-controlled input. This can lead to
+      prototype pollution if input contains __proto__ or constructor properties.
+      CWE-706: Use of Incorrectly-Resolved Name or Reference
+    metadata:
+      cwe: "CWE-706: Use of Incorrectly-Resolved Name or Reference"
+      owasp: "A01:2021 - Broken Access Control"
+      category: security
+      confidence: MEDIUM
+      likelihood: MEDIUM
+      impact: HIGH
+    severity: WARNING
+    languages: [javascript, typescript]
+
+  - id: prototype-pollution-bracket
+    patterns:
+      - pattern-either:
+          - pattern: $OBJ[$KEY] = $VALUE
+          - pattern: $OBJ[$KEY][$KEY2] = $VALUE
+      - pattern-not-inside: |
+          if ($KEY !== '__proto__' && $KEY !== 'constructor') { ... }
+      - pattern-not-inside: |
+          const $KEY = "..."
+    message: |
+      Dynamic property assignment. If key is user-controlled, this could
+      allow prototype pollution attacks.
+      CWE-706: Use of Incorrectly-Resolved Name or Reference
+    metadata:
+      cwe: "CWE-706: Use of Incorrectly-Resolved Name or Reference"
+      owasp: "A01:2021 - Broken Access Control"
+      category: security
+      confidence: LOW
+      likelihood: LOW
+      impact: HIGH
+    severity: INFO
+    languages: [javascript, typescript]
+
+  # ---------------------------------------------------------------------------
+  # CWE-862: Missing Authorization
+  # ---------------------------------------------------------------------------
+  - id: express-route-no-auth
+    patterns:
+      - pattern-either:
+          - pattern: |
+              app.post($PATH, (req, res) => {
+                ...
+                $DB.$OP(...)
+                ...
+              })
+          - pattern: |
+              app.put($PATH, (req, res) => {
+                ...
+                $DB.$OP(...)
+                ...
+              })
+          - pattern: |
+              app.delete($PATH, (req, res) => {
+                ...
+                $DB.$OP(...)
+                ...
+              })
+      - pattern-not-inside: |
+          app.$METHOD($PATH, $AUTH, ...)
+      - pattern-not-inside: |
+          app.use($AUTH)
+      - pattern-not-inside: |
+          if (req.user) { ... }
+    message: |
+      Database operation in route without authentication middleware.
+      Add authentication middleware to protect this endpoint.
+      CWE-862: Missing Authorization
+    metadata:
+      cwe: "CWE-862: Missing Authorization"
+      owasp: "A01:2021 - Broken Access Control"
+      category: security
+      confidence: MEDIUM
+      likelihood: MEDIUM
+      impact: HIGH
+    severity: WARNING
+    languages: [javascript, typescript]
+
+  # ---------------------------------------------------------------------------
+  # CWE-863: Incorrect Authorization
+  # ---------------------------------------------------------------------------
+  - id: client-side-privilege-check
+    patterns:
+      - pattern-either:
+          - pattern: $PROFILE?.isAdmin
+          - pattern: $PROFILE.isAdmin
+          - pattern: $USER?.isAdmin
+          - pattern: $USER.isAdmin
+          - pattern: userData?.isAdmin
+          - pattern: userData.isAdmin
+          - pattern: $USER?.role === 'admin'
+          - pattern: $USER.role === 'admin'
+          - pattern: $PROFILE?.isOwner
+          - pattern: userProfile?.isAdmin
+    message: |
+      Client-side privilege check detected. These can be bypassed by modifying
+      client state or calling APIs directly. Enforce authorization server-side
+      using Firebase Custom Claims (request.auth.token.admin).
+      CWE-863: Incorrect Authorization
+    metadata:
+      cwe: "CWE-863: Incorrect Authorization"
+      owasp: "A01:2021 - Broken Access Control"
+      category: security
+      confidence: HIGH
+      likelihood: HIGH
+      impact: HIGH
+    severity: ERROR
+    languages: [javascript, typescript, jsx, tsx]
+
+  # ---------------------------------------------------------------------------
+  # CWE-913: Improper Control of Dynamically-Managed Code Resources
+  # ---------------------------------------------------------------------------
+  - id: dynamic-require
+    patterns:
+      - pattern-either:
+          - pattern: require($DYNAMIC)
+          - pattern: import($DYNAMIC)
+      - pattern-not: require("...")
+      - pattern-not: import("...")
+    message: |
+      Dynamic require/import with potentially user-controlled path.
+      This could allow attackers to load arbitrary modules.
+      CWE-913: Improper Control of Dynamically-Managed Code Resources
+    metadata:
+      cwe: "CWE-913: Improper Control of Dynamically-Managed Code Resources"
+      owasp: "A01:2021 - Broken Access Control"
+      category: security
+      confidence: MEDIUM
+      likelihood: MEDIUM
+      impact: HIGH
+    severity: WARNING
+    languages: [javascript, typescript]
+
+  # ---------------------------------------------------------------------------
+  # CWE-922: Insecure Storage of Sensitive Information
+  # ---------------------------------------------------------------------------
+  - id: sensitive-data-localstorage
+    patterns:
+      - pattern-either:
+          - pattern: localStorage.setItem($KEY, ...)
+          - pattern: sessionStorage.setItem($KEY, ...)
+      - metavariable-regex:
+          metavariable: $KEY
+          regex: '(?i).*(password|token|secret|key|auth|session|jwt|credit|ssn|apikey).*'
+    message: |
+      Sensitive data stored in browser storage. localStorage/sessionStorage
+      are accessible to XSS attacks. Use httpOnly cookies for auth tokens.
+      CWE-922: Insecure Storage of Sensitive Information
+    metadata:
+      cwe: "CWE-922: Insecure Storage of Sensitive Information"
+      owasp: "A01:2021 - Broken Access Control"
+      category: security
+      confidence: HIGH
+      likelihood: MEDIUM
+      impact: HIGH
+    severity: ERROR
+    languages: [javascript, typescript, jsx, tsx]
+
+  # ---------------------------------------------------------------------------
+  # CWE-1275: Sensitive Cookie with Improper SameSite Attribute
+  # ---------------------------------------------------------------------------
+  - id: cookie-missing-security-flags
+    patterns:
+      - pattern: res.cookie($NAME, $VALUE, $OPTIONS)
+      - pattern-not: res.cookie($NAME, $VALUE, {..., httpOnly: true, ...})
+    message: |
+      Cookie set without httpOnly flag. Cookies accessible to JavaScript
+      can be stolen via XSS attacks.
+      CWE-1275: Sensitive Cookie with Improper SameSite Attribute
+    metadata:
+      cwe: "CWE-1275: Sensitive Cookie with Improper SameSite Attribute"
+      owasp: "A01:2021 - Broken Access Control"
+      category: security
+      confidence: MEDIUM
+      likelihood: MEDIUM
+      impact: MEDIUM
+    severity: WARNING
+    languages: [javascript, typescript]
+
+  - id: cookie-missing-samesite
+    patterns:
+      - pattern: res.cookie($NAME, $VALUE, $OPTIONS)
+      - pattern-not: res.cookie($NAME, $VALUE, {..., sameSite: 'strict', ...})
+      - pattern-not: res.cookie($NAME, $VALUE, {..., sameSite: 'lax', ...})
+    message: |
+      Cookie set without SameSite attribute. Set sameSite: 'strict' or 'lax'
+      to prevent CSRF attacks.
+      CWE-1275: Sensitive Cookie with Improper SameSite Attribute
+    metadata:
+      cwe: "CWE-1275: Sensitive Cookie with Improper SameSite Attribute"
+      owasp: "A01:2021 - Broken Access Control"
+      category: security
+      confidence: MEDIUM
+      likelihood: MEDIUM
+      impact: MEDIUM
+    severity: WARNING
+    languages: [javascript, typescript]
+
+
+  # ============================================================================
+  # OWASP TOP 10:2021 - A02: CRYPTOGRAPHIC FAILURES
+  # JavaScript/JSX/TypeScript Source Code Analysis
+  # ============================================================================
+  # Applicable CWEs: 259, 261, 296, 319, 321, 323, 326, 327, 328, 329, 330,
+  #                  331, 338, 340, 347, 523, 757, 759, 760, 916
+  # ============================================================================
+
+  # ---------------------------------------------------------------------------
+  # CWE-259: Use of Hard-coded Password
+  # ---------------------------------------------------------------------------
+  - id: hardcoded-password
+    patterns:
+      - pattern-either:
+          - pattern: |
+              $VAR = { ..., password: "...", ... }
+          - pattern: |
+              const password = "..."
+          - pattern: |
+              let password = "..."
+          - pattern: |
+              password: "..."
+      - pattern-not: password: ""
+      - pattern-not: password: process.env.$VAR
+    message: |
+      Hard-coded password detected. Passwords should never be in source code.
+      Use environment variables or a secrets manager.
+      CWE-259: Use of Hard-coded Password
+    metadata:
+      cwe: "CWE-259: Use of Hard-coded Password"
+      owasp: "A02:2021 - Cryptographic Failures"
+      category: security
+      confidence: HIGH
+      likelihood: HIGH
+      impact: HIGH
+    severity: ERROR
+    languages: [javascript, typescript, jsx, tsx]
+
+  # ---------------------------------------------------------------------------
+  # CWE-261: Weak Encoding for Password
+  # ---------------------------------------------------------------------------
+  - id: weak-password-encoding
+    patterns:
+      - pattern-either:
+          - pattern: Buffer.from($PASSWORD).toString('base64')
+          - pattern: btoa($PASSWORD)
+          - pattern: encodeURIComponent($PASSWORD)
+      - metavariable-regex:
+          metavariable: $PASSWORD
+          regex: '(?i).*(password|pass|pwd).*'
+    message: |
+      Password encoded with reversible method (base64/URL encoding).
+      Use bcrypt, argon2, or scrypt for password hashing.
+      CWE-261: Weak Encoding for Password
+    metadata:
+      cwe: "CWE-261: Weak Encoding for Password"
+      owasp: "A02:2021 - Cryptographic Failures"
+      category: security
+      confidence: HIGH
+      likelihood: HIGH
+      impact: HIGH
+    severity: ERROR
+    languages: [javascript, typescript]
+
+  # ---------------------------------------------------------------------------
+  # CWE-296: Improper Following of a Certificate's Chain of Trust
+  # ---------------------------------------------------------------------------
+  - id: tls-cert-validation-disabled
+    patterns:
+      - pattern-either:
+          - pattern: process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'
+          - pattern: process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0'
+          - pattern: |
+              { ..., rejectUnauthorized: false, ... }
+          - pattern: |
+              https.request({..., rejectUnauthorized: false, ...}, ...)
+          - pattern: |
+              axios.create({..., httpsAgent: new https.Agent({ rejectUnauthorized: false }), ...})
+    message: |
+      TLS certificate validation disabled. This allows man-in-the-middle attacks.
+      Never disable certificate validation in production.
+      CWE-296: Improper Following of a Certificate's Chain of Trust
+    metadata:
+      cwe: "CWE-296: Improper Following of a Certificate's Chain of Trust"
+      owasp: "A02:2021 - Cryptographic Failures"
+      category: security
+      confidence: HIGH
+      likelihood: HIGH
+      impact: HIGH
+    severity: ERROR
+    languages: [javascript, typescript]
+
+  # ---------------------------------------------------------------------------
+  # CWE-319: Cleartext Transmission of Sensitive Information
+  # ---------------------------------------------------------------------------
+  - id: http-not-https
+    patterns:
+      - pattern-either:
+          - pattern: fetch("http://...")
+          - pattern: axios.get("http://...")
+          - pattern: axios.post("http://...", ...)
+          - pattern: http.get("http://...", ...)
+          - pattern: |
+              $URL = "http://..."
+      - pattern-not-regex: 'http://localhost'
+      - pattern-not-regex: 'http://127\.0\.0\.1'
+      - pattern-not-regex: 'http://0\.0\.0\.0'
+    message: |
+      HTTP URL used instead of HTTPS. Data transmitted over HTTP can be
+      intercepted and read by attackers.
+      CWE-319: Cleartext Transmission of Sensitive Information
+    metadata:
+      cwe: "CWE-319: Cleartext Transmission of Sensitive Information"
+      owasp: "A02:2021 - Cryptographic Failures"
+      category: security
+      confidence: HIGH
+      likelihood: MEDIUM
+      impact: HIGH
+    severity: ERROR
+    languages: [javascript, typescript, jsx, tsx]
+
+  # ---------------------------------------------------------------------------
+  # CWE-321: Use of Hard-coded Cryptographic Key
+  # ---------------------------------------------------------------------------
+  - id: hardcoded-crypto-key
+    patterns:
+      - pattern-either:
+          - pattern: |
+              jwt.sign($PAYLOAD, "...")
+          - pattern: |
+              jwt.verify($TOKEN, "...")
+          - pattern: |
+              crypto.createCipher($ALG, "...")
+          - pattern: |
+              crypto.createHmac($ALG, "...")
+          - pattern: |
+              const $KEY = "..."
+      - metavariable-regex:
+          metavariable: $KEY
+          regex: '(?i).*(secret|key|private|encryption).*'
+      - pattern-not: const $KEY = process.env.$VAR
+    message: |
+      Hard-coded cryptographic key. Keys should be stored in environment
+      variables or a key management service (KMS).
+      CWE-321: Use of Hard-coded Cryptographic Key
+    metadata:
+      cwe: "CWE-321: Use of Hard-coded Cryptographic Key"
+      owasp: "A02:2021 - Cryptographic Failures"
+      category: security
+      confidence: HIGH
+      likelihood: HIGH
+      impact: HIGH
+    severity: ERROR
+    languages: [javascript, typescript]
+
+  # ---------------------------------------------------------------------------
+  # CWE-323: Reusing a Nonce, Key Pair in Encryption
+  # ---------------------------------------------------------------------------
+  - id: static-iv-nonce
+    patterns:
+      - pattern-either:
+          - pattern: |
+              const iv = "..."
+              ...
+              crypto.createCipheriv($ALG, $KEY, iv)
+          - pattern: |
+              const nonce = "..."
+              ...
+              crypto.createCipheriv($ALG, $KEY, nonce)
+          - pattern: crypto.createCipheriv($ALG, $KEY, Buffer.alloc(16, 0))
+          - pattern: crypto.createCipheriv($ALG, $KEY, Buffer.from("..."))
+    message: |
+      Static IV/nonce used in encryption. IVs must be unique for each encryption
+      operation. Use crypto.randomBytes() to generate random IVs.
+      CWE-323: Reusing a Nonce, Key Pair in Encryption
+    metadata:
+      cwe: "CWE-323: Reusing a Nonce, Key Pair in Encryption"
+      owasp: "A02:2021 - Cryptographic Failures"
+      category: security
+      confidence: HIGH
+      likelihood: HIGH
+      impact: HIGH
+    severity: ERROR
+    languages: [javascript, typescript]
+
+  # ---------------------------------------------------------------------------
+  # CWE-326: Inadequate Encryption Strength
+  # ---------------------------------------------------------------------------
+  - id: weak-encryption-keysize
+    patterns:
+      - pattern-either:
+          - pattern: crypto.generateKeyPair('rsa', { modulusLength: $LEN, ... }, ...)
+          - pattern: crypto.generateKeyPairSync('rsa', { modulusLength: $LEN, ... })
+      - metavariable-comparison:
+          metavariable: $LEN
+          comparison: $LEN < 2048
+    message: |
+      RSA key size less than 2048 bits. Use at least 2048-bit keys for RSA.
+      CWE-326: Inadequate Encryption Strength
+    metadata:
+      cwe: "CWE-326: Inadequate Encryption Strength"
+      owasp: "A02:2021 - Cryptographic Failures"
+      category: security
+      confidence: HIGH
+      likelihood: MEDIUM
+      impact: HIGH
+    severity: ERROR
+    languages: [javascript, typescript]
+
+  - id: weak-encryption-algorithm
+    patterns:
+      - pattern-either:
+          - pattern: crypto.createCipher('des', ...)
+          - pattern: crypto.createCipher('des-$MODE', ...)
+          - pattern: crypto.createCipher('rc4', ...)
+          - pattern: crypto.createCipher('rc2', ...)
+          - pattern: crypto.createCipher('blowfish', ...)
+          - pattern: crypto.createCipheriv('des', ...)
+          - pattern: crypto.createCipheriv('des-$MODE', ...)
+          - pattern: crypto.createCipheriv('rc4', ...)
+          - pattern: crypto.createCipheriv('aes-128-ecb', ...)
+    message: |
+      Weak or deprecated encryption algorithm. Use AES-256-GCM for symmetric
+      encryption.
+      CWE-326: Inadequate Encryption Strength
+    metadata:
+      cwe: "CWE-326: Inadequate Encryption Strength"
+      owasp: "A02:2021 - Cryptographic Failures"
+      category: security
+      confidence: HIGH
+      likelihood: MEDIUM
+      impact: HIGH
+    severity: ERROR
+    languages: [javascript, typescript]
+
+  # ---------------------------------------------------------------------------
+  # CWE-327: Use of a Broken or Risky Cryptographic Algorithm
+  # ---------------------------------------------------------------------------
+  - id: weak-hash-algorithm
+    patterns:
+      - pattern-either:
+          - pattern: crypto.createHash('md5')
+          - pattern: crypto.createHash('md4')
+          - pattern: crypto.createHash('sha1')
+          - pattern: CryptoJS.MD5(...)
+          - pattern: CryptoJS.SHA1(...)
+          - pattern: CryptoJS.MD4(...)
+    message: |
+      Weak hash algorithm (MD5/SHA1/MD4). These have known collision vulnerabilities.
+      Use SHA-256 or SHA-3 for hashing, bcrypt/argon2 for passwords.
+      CWE-327: Use of a Broken or Risky Cryptographic Algorithm
+    metadata:
+      cwe: "CWE-327: Use of a Broken or Risky Cryptographic Algorithm"
+      owasp: "A02:2021 - Cryptographic Failures"
+      category: security
+      confidence: HIGH
+      likelihood: HIGH
+      impact: HIGH
+    severity: ERROR
+    languages: [javascript, typescript]
+
+  # ---------------------------------------------------------------------------
+  # CWE-328: Use of Weak Hash
+  # ---------------------------------------------------------------------------
+  - id: weak-bcrypt-rounds
+    patterns:
+      - pattern-either:
+          - pattern: bcrypt.hash($PASS, $ROUNDS, ...)
+          - pattern: bcrypt.hashSync($PASS, $ROUNDS)
+      - metavariable-comparison:
+          metavariable: $ROUNDS
+          comparison: $ROUNDS < 10
+    message: |
+      Bcrypt with less than 10 rounds is too fast for password hashing.
+      Use at least 10 rounds (12+ recommended).
+      CWE-328: Use of Weak Hash
+    metadata:
+      cwe: "CWE-328: Reversible One-Way Hash"
+      owasp: "A02:2021 - Cryptographic Failures"
+      category: security
+      confidence: HIGH
+      likelihood: MEDIUM
+      impact: MEDIUM
+    severity: WARNING
+    languages: [javascript, typescript]
+
+  # ---------------------------------------------------------------------------
+  # CWE-329: Not Using a Random IV with CBC Mode
+  # ---------------------------------------------------------------------------
+  - id: cbc-static-iv
+    patterns:
+      - pattern: crypto.createCipheriv('$ALG-cbc', $KEY, $IV)
+      - pattern-not-inside: |
+          $IV = crypto.randomBytes(...)
+    message: |
+      CBC mode encryption may be using non-random IV. Always use
+      crypto.randomBytes() to generate a unique IV for each encryption.
+      CWE-329: Not Using a Random IV with CBC Mode
+    metadata:
+      cwe: "CWE-329: Not Using a Random IV with CBC Mode"
+      owasp: "A02:2021 - Cryptographic Failures"
+      category: security
+      confidence: MEDIUM
+      likelihood: MEDIUM
+      impact: HIGH
+    severity: WARNING
+    languages: [javascript, typescript]
+
+  # ---------------------------------------------------------------------------
+  # CWE-330: Use of Insufficiently Random Values
+  # ---------------------------------------------------------------------------
+  - id: math-random-security
+    patterns:
+      - pattern-either:
+          - pattern: Math.random()
+          - pattern: Math.floor(Math.random() * ...)
+          - pattern: Math.random().toString(36)
+      - pattern-inside: |
+          function $FUNC(...) { ... }
+      - metavariable-regex:
+          metavariable: $FUNC
+          regex: '(?i).*(token|secret|key|password|auth|session|id|nonce|salt|code|otp|verify).*'
+    message: |
+      Math.random() used in security-sensitive context. Math.random() is not
+      cryptographically secure. Use crypto.randomBytes() or crypto.randomUUID().
+      CWE-330: Use of Insufficiently Random Values
+    metadata:
+      cwe: "CWE-330: Use of Insufficiently Random Values"
+      owasp: "A02:2021 - Cryptographic Failures"
+      category: security
+      confidence: HIGH
+      likelihood: HIGH
+      impact: HIGH
+    severity: ERROR
+    languages: [javascript, typescript]
+
+  - id: math-random-token-generation
+    patterns:
+      - pattern-either:
+          - pattern: |
+              $TOKEN = Math.random().toString(36).substring(...)
+          - pattern: |
+              $TOKEN = Math.random().toString(36).slice(...)
+          - pattern: |
+              Math.random().toString(36).substr(...)
+    message: |
+      Math.random() used for token generation. This is predictable and insecure.
+      Use crypto.randomBytes() or crypto.randomUUID().
+      CWE-330: Use of Insufficiently Random Values
+    metadata:
+      cwe: "CWE-330: Use of Insufficiently Random Values"
+      owasp: "A02:2021 - Cryptographic Failures"
+      category: security
+      confidence: HIGH
+      likelihood: HIGH
+      impact: HIGH
+    severity: ERROR
+    languages: [javascript, typescript, jsx, tsx]
+
+  # ---------------------------------------------------------------------------
+  # CWE-331: Insufficient Entropy
+  # ---------------------------------------------------------------------------
+  - id: insufficient-random-bytes
+    patterns:
+      - pattern-either:
+          - pattern: crypto.randomBytes(8)
+          - pattern: crypto.randomBytes(4)
+          - pattern: crypto.randomBytes($LEN)
+      - metavariable-comparison:
+          metavariable: $LEN
+          comparison: $LEN < 16
+    message: |
+      Insufficient entropy. Use at least 16 bytes (128 bits) for
+      cryptographic randomness.
+      CWE-331: Insufficient Entropy
+    metadata:
+      cwe: "CWE-331: Insufficient Entropy"
+      owasp: "A02:2021 - Cryptographic Failures"
+      category: security
+      confidence: MEDIUM
+      likelihood: MEDIUM
+      impact: MEDIUM
+    severity: WARNING
+    languages: [javascript, typescript]
+
+  # ---------------------------------------------------------------------------
+  # CWE-338: Use of Cryptographically Weak Pseudo-Random Number Generator
+  # ---------------------------------------------------------------------------
+  - id: weak-prng-lodash
+    patterns:
+      - pattern-either:
+          - pattern: _.random(...)
+          - pattern: _.sample(...)
+          - pattern: _.shuffle(...)
+      - pattern-inside: |
+          function $FUNC(...) { ... }
+      - metavariable-regex:
+          metavariable: $FUNC
+          regex: '(?i).*(token|secret|key|auth|crypto|encrypt).*'
+    message: |
+      Lodash random functions are not cryptographically secure.
+      Use crypto.randomBytes() for security-sensitive operations.
+      CWE-338: Use of Cryptographically Weak PRNG
+    metadata:
+      cwe: "CWE-338: Use of Cryptographically Weak Pseudo-Random Number Generator (PRNG)"
+      owasp: "A02:2021 - Cryptographic Failures"
+      category: security
+      confidence: MEDIUM
+      likelihood: MEDIUM
+      impact: HIGH
+    severity: WARNING
+    languages: [javascript, typescript]
+
+  # ---------------------------------------------------------------------------
+  # CWE-340: Generation of Predictable Numbers or Identifiers
+  # ---------------------------------------------------------------------------
+  - id: predictable-id-generation
+    patterns:
+      - pattern-either:
+          - pattern: |
+              $ID = Date.now()
+          - pattern: |
+              $ID = new Date().getTime()
+          - pattern: |
+              $ID = $COUNTER++
+          - pattern: |
+              $ID = `${Date.now()}-${$SUFFIX}`
+    message: |
+      Predictable identifier generation. Use crypto.randomUUID() or a
+      UUID library for unique, unpredictable identifiers.
+      CWE-340: Generation of Predictable Numbers or Identifiers
+    metadata:
+      cwe: "CWE-340: Generation of Predictable Numbers or Identifiers"
+      owasp: "A02:2021 - Cryptographic Failures"
+      category: security
+      confidence: MEDIUM
+      likelihood: MEDIUM
+      impact: MEDIUM
+    severity: WARNING
+    languages: [javascript, typescript]
+
+  # ---------------------------------------------------------------------------
+  # CWE-347: Improper Verification of Cryptographic Signature
+  # ---------------------------------------------------------------------------
+  - id: jwt-decode-without-verify
+    patterns:
+      - pattern-either:
+          - pattern: jwt.decode($TOKEN)
+          - pattern: jwt.decode($TOKEN, { complete: true })
+          - pattern: jwtDecode($TOKEN)
+      - pattern-not-inside: |
+          jwt.verify($TOKEN, ...)
+    message: |
+      JWT decoded without verification. Always use jwt.verify() to validate
+      token signature and claims.
+      CWE-347: Improper Verification of Cryptographic Signature
+    metadata:
+      cwe: "CWE-347: Improper Verification of Cryptographic Signature"
+      owasp: "A02:2021 - Cryptographic Failures"
+      category: security
+      confidence: HIGH
+      likelihood: HIGH
+      impact: HIGH
+    severity: ERROR
+    languages: [javascript, typescript]
+
+  - id: jwt-none-algorithm
+    patterns:
+      - pattern-either:
+          - pattern: jwt.verify($TOKEN, $SECRET, { algorithms: ['none', ...] })
+          - pattern: jwt.sign($PAYLOAD, '', { algorithm: 'none' })
+    message: |
+      JWT 'none' algorithm allowed. This disables signature verification
+      entirely and is a critical vulnerability.
+      CWE-347: Improper Verification of Cryptographic Signature
+    metadata:
+      cwe: "CWE-347: Improper Verification of Cryptographic Signature"
+      owasp: "A02:2021 - Cryptographic Failures"
+      category: security
+      confidence: HIGH
+      likelihood: HIGH
+      impact: HIGH
+    severity: ERROR
+    languages: [javascript, typescript]
+
+  # ---------------------------------------------------------------------------
+  # CWE-523: Unprotected Transport of Credentials
+  # ---------------------------------------------------------------------------
+  - id: credentials-in-url
+    patterns:
+      - pattern-either:
+          - pattern: |
+              fetch(`...?password=${$PASS}...`)
+          - pattern: |
+              fetch(`...?token=${$TOKEN}...`)
+          - pattern: |
+              fetch(`...?api_key=${$KEY}...`)
+          - pattern: |
+              axios.get(`...?secret=${$SECRET}...`)
+          - pattern: |
+              $URL = `${$BASE}?apiKey=${$KEY}`
+    message: |
+      Credentials in URL. URLs are logged in browser history, server logs,
+      and can leak via Referer headers. Use Authorization header or POST body.
+      CWE-523: Unprotected Transport of Credentials
+    metadata:
+      cwe: "CWE-523: Unprotected Transport of Credentials"
+      owasp: "A02:2021 - Cryptographic Failures"
+      category: security
+      confidence: HIGH
+      likelihood: MEDIUM
+      impact: HIGH
+    severity: ERROR
+    languages: [javascript, typescript, jsx, tsx]
+
+  # ---------------------------------------------------------------------------
+  # CWE-757: Selection of Less-Secure Algorithm During Negotiation
+  # ---------------------------------------------------------------------------
+  - id: weak-tls-version
+    patterns:
+      - pattern-either:
+          - pattern: |
+              { ..., minVersion: 'TLSv1', ... }
+          - pattern: |
+              { ..., minVersion: 'TLSv1.1', ... }
+          - pattern: |
+              { ..., secureProtocol: 'TLSv1_method', ... }
+          - pattern: |
+              { ..., secureProtocol: 'TLSv1_1_method', ... }
+    message: |
+      Weak TLS version allowed. TLS 1.0 and 1.1 have known vulnerabilities.
+      Use TLS 1.2 or 1.3 minimum.
+      CWE-757: Selection of Less-Secure Algorithm During Negotiation
+    metadata:
+      cwe: "CWE-757: Selection of Less-Secure Algorithm During Negotiation ('Algorithm Downgrade')"
+      owasp: "A02:2021 - Cryptographic Failures"
+      category: security
+      confidence: HIGH
+      likelihood: MEDIUM
+      impact: HIGH
+    severity: ERROR
+    languages: [javascript, typescript]
+
+  # ---------------------------------------------------------------------------
+  # CWE-759: Use of a One-Way Hash without a Salt
+  # ---------------------------------------------------------------------------
+  - id: password-hash-without-salt
+    patterns:
+      - pattern-either:
+          - pattern: crypto.createHash($ALG).update($PASSWORD).digest(...)
+          - pattern: CryptoJS.$ALG($PASSWORD).toString()
+      - metavariable-regex:
+          metavariable: $PASSWORD
+          regex: '(?i).*(password|pass|pwd).*'
+      - pattern-not-inside: |
+          crypto.createHash($ALG).update($SALT + $PASSWORD).digest(...)
+    message: |
+      Password hashed without salt. Use bcrypt, argon2, or scrypt which
+      handle salting automatically.
+      CWE-759: Use of a One-Way Hash without a Salt
+    metadata:
+      cwe: "CWE-759: Use of a One-Way Hash without a Salt"
+      owasp: "A02:2021 - Cryptographic Failures"
+      category: security
+      confidence: HIGH
+      likelihood: HIGH
+      impact: HIGH
+    severity: ERROR
+    languages: [javascript, typescript]
+
+  # ---------------------------------------------------------------------------
+  # CWE-760: Use of a One-Way Hash with a Predictable Salt
+  # ---------------------------------------------------------------------------
+  - id: predictable-salt
+    patterns:
+      - pattern-either:
+          - pattern: |
+              const salt = "..."
+              ...
+              crypto.createHash($ALG).update(salt + $PASSWORD).digest(...)
+          - pattern: |
+              crypto.createHash($ALG).update("..." + $PASSWORD).digest(...)
+    message: |
+      Static/predictable salt used for password hashing. Use unique random
+      salt per password. Better: use bcrypt/argon2 which handle this automatically.
+      CWE-760: Use of a One-Way Hash with a Predictable Salt
+    metadata:
+      cwe: "CWE-760: Use of a One-Way Hash with a Predictable Salt"
+      owasp: "A02:2021 - Cryptographic Failures"
+      category: security
+      confidence: HIGH
+      likelihood: HIGH
+      impact: HIGH
+    severity: ERROR
+    languages: [javascript, typescript]
+
+  # ---------------------------------------------------------------------------
+  # CWE-916: Use of Password Hash With Insufficient Computational Effort
+  # ---------------------------------------------------------------------------
+  - id: fast-password-hash
+    patterns:
+      - pattern-either:
+          - pattern: crypto.createHash('sha256').update($PASSWORD).digest(...)
+          - pattern: crypto.createHash('sha512').update($PASSWORD).digest(...)
+          - pattern: CryptoJS.SHA256($PASSWORD)
+          - pattern: CryptoJS.SHA512($PASSWORD)
+      - metavariable-regex:
+          metavariable: $PASSWORD
+          regex: '(?i).*(password|pass|pwd).*'
+    message: |
+      Fast hash function used for password. SHA-256/512 are too fast and
+      vulnerable to brute force. Use bcrypt (cost 12+), argon2id, or scrypt.
+      CWE-916: Use of Password Hash With Insufficient Computational Effort
+    metadata:
+      cwe: "CWE-916: Use of Password Hash With Insufficient Computational Effort"
+      owasp: "A02:2021 - Cryptographic Failures"
+      category: security
+      confidence: HIGH
+      likelihood: HIGH
+      impact: HIGH
+    severity: ERROR
+    languages: [javascript, typescript]
+
+
+  # ============================================================================
+  # OWASP TOP 10:2021 - A03: INJECTION
+  # JavaScript/JSX/TypeScript Source Code Analysis
+  # ============================================================================
+  # Applicable CWEs: 20, 77, 78, 79, 80, 83, 87, 88, 89, 94, 95, 113, 116,
+  #                  184, 434, 470, 471, 611, 643, 917, 943
+  # ============================================================================
+
+  # ---------------------------------------------------------------------------
+  # CWE-20: Improper Input Validation
+  # ---------------------------------------------------------------------------
+  - id: express-body-no-validation
+    patterns:
+      - pattern: |
+          app.$METHOD($PATH, (req, res) => {
+            ...
+            $DB.$OP(..., req.body.$FIELD, ...)
+            ...
+          })
+      - pattern-not-inside: |
+          if (!req.body.$FIELD) { ... }
+      - pattern-not-inside: |
+          if (typeof req.body.$FIELD !== ...) { ... }
+      - pattern-not-inside: |
+          $VALIDATOR.validate(...)
+      - metavariable-regex:
+          metavariable: $METHOD
+          regex: '(post|put|patch)'
+    message: |
+      Request body field used without validation. Always validate input type,
+      length, format, and range.
+      CWE-20: Improper Input Validation
+    metadata:
+      cwe: "CWE-20: Improper Input Validation"
+      owasp: "A03:2021 - Injection"
+      category: security
+      confidence: MEDIUM
+      likelihood: MEDIUM
+      impact: MEDIUM
+    severity: WARNING
+    languages: [javascript, typescript]
+
+  - id: firebase-no-input-validation
+    patterns:
+      - pattern-either:
+          - pattern: addDoc($COLLECTION, req.body)
+          - pattern: setDoc($REF, req.body)
+          - pattern: updateDoc($REF, req.body)
+    message: |
+      Request body passed directly to Firestore without validation.
+      Validate and sanitize all fields.
+      CWE-20: Improper Input Validation
+    metadata:
+      cwe: "CWE-20: Improper Input Validation"
+      owasp: "A03:2021 - Injection"
+      category: security
+      confidence: HIGH
+      likelihood: MEDIUM
+      impact: MEDIUM
+    severity: WARNING
+    languages: [javascript, typescript]
+
+  # ---------------------------------------------------------------------------
+  # CWE-77, CWE-78: Command Injection
+  # ---------------------------------------------------------------------------
+  - id: command-injection-exec
+    mode: taint
+    message: |
+      Command injection vulnerability. User input flows into shell command execution.
+      Use parameterized commands or strictly validate input.
+      CWE-78: OS Command Injection
+    metadata:
+      cwe: "CWE-78: Improper Neutralization of Special Elements used in an OS Command"
+      owasp: "A03:2021 - Injection"
+      category: security
+      confidence: HIGH
+      likelihood: HIGH
+      impact: HIGH
+    severity: ERROR
+    languages: [javascript, typescript]
+    pattern-sources:
+      - patterns:
+          - pattern-either:
+              - pattern: req.query.$PARAM
+              - pattern: req.body.$PARAM
+              - pattern: req.params.$PARAM
+    pattern-sinks:
+      - patterns:
+          - pattern-either:
+              - pattern: exec($CMD)
+              - pattern: execSync($CMD)
+              - pattern: child_process.exec($CMD)
+              - pattern: child_process.execSync($CMD)
+              - pattern: require('child_process').exec($CMD)
+              - pattern: spawn($SHELL, ['-c', $CMD])
+
+  - id: command-injection-template
+    patterns:
+      - pattern-either:
+          - pattern: exec(`$PREFIX ${$INPUT} $SUFFIX`)
+          - pattern: execSync(`$PREFIX ${$INPUT} $SUFFIX`)
+          - pattern: exec($PREFIX + $INPUT + $SUFFIX)
+      - pattern-not-inside: |
+          const $INPUT = "..."
+    message: |
+      Template string in command execution. If any part is user-controlled,
+      this is a command injection vulnerability.
+      CWE-77: Command Injection
+    metadata:
+      cwe: "CWE-77: Improper Neutralization of Special Elements used in a Command"
+      owasp: "A03:2021 - Injection"
+      category: security
+      confidence: MEDIUM
+      likelihood: HIGH
+      impact: HIGH
+    severity: ERROR
+    languages: [javascript, typescript]
+
+  # ---------------------------------------------------------------------------
+  # CWE-79, CWE-80, CWE-83, CWE-87: Cross-site Scripting (XSS)
+  # ---------------------------------------------------------------------------
+  - id: react-dangerously-set-innerhtml
+    patterns:
+      - pattern: dangerouslySetInnerHTML={{__html: $CONTENT}}
+    message: |
+      dangerouslySetInnerHTML with dynamic content. If $CONTENT contains
+      user input, this is an XSS vulnerability. Sanitize with DOMPurify.
+      CWE-79: Cross-site Scripting (XSS)
+    metadata:
+      cwe: "CWE-79: Improper Neutralization of Input During Web Page Generation"
+      owasp: "A03:2021 - Injection"
+      category: security
+      confidence: HIGH
+      likelihood: HIGH
+      impact: MEDIUM
+    severity: ERROR
+    languages: [javascript, typescript, jsx, tsx]
+
+  - id: dom-xss-innerhtml
+    mode: taint
+    message: |
+      DOM-based XSS. User-controlled data flows into innerHTML.
+      Use textContent instead, or sanitize with DOMPurify.
+      CWE-79: Cross-site Scripting (XSS)
+    metadata:
+      cwe: "CWE-79: Improper Neutralization of Input During Web Page Generation"
+      owasp: "A03:2021 - Injection"
+      category: security
+      confidence: HIGH
+      likelihood: HIGH
+      impact: MEDIUM
+    severity: ERROR
+    languages: [javascript, typescript]
+    pattern-sources:
+      - patterns:
+          - pattern-either:
+              - pattern: location.hash
+              - pattern: location.search
+              - pattern: location.href
+              - pattern: document.URL
+              - pattern: document.referrer
+              - pattern: window.name
+    pattern-sinks:
+      - patterns:
+          - pattern-either:
+              - pattern: $EL.innerHTML = $X
+              - pattern: $EL.outerHTML = $X
+              - pattern: document.write($X)
+              - pattern: document.writeln($X)
+
+  - id: dom-xss-sinks
+    patterns:
+      - pattern-either:
+          - pattern: $EL.innerHTML = $INPUT
+          - pattern: $EL.outerHTML = $INPUT
+          - pattern: document.write($INPUT)
+          - pattern: document.writeln($INPUT)
+          - pattern: $EL.insertAdjacentHTML($POS, $INPUT)
+      - pattern-not: $EL.innerHTML = "..."
+      - pattern-not: $EL.outerHTML = "..."
+      - pattern-not: document.write("...")
+    message: |
+      Direct DOM manipulation with dynamic content. Use textContent or
+      sanitize input with DOMPurify before inserting.
+      CWE-79: Cross-site Scripting (XSS)
+    metadata:
+      cwe: "CWE-79: Improper Neutralization of Input During Web Page Generation"
+      owasp: "A03:2021 - Injection"
+      category: security
+      confidence: MEDIUM
+      likelihood: HIGH
+      impact: MEDIUM
+    severity: ERROR
+    languages: [javascript, typescript]
+
+  - id: xss-href-javascript
+    patterns:
+      - pattern-either:
+          - pattern: |
+              <a href={$URL}>...</a>
+          - pattern: $EL.href = $URL
+          - pattern: $EL.setAttribute('href', $URL)
+      - pattern-not: |
+          <a href="...">...</a>
+      - pattern-not-inside: |
+          if (!$URL.startsWith('javascript:')) { ... }
+    message: |
+      Dynamic href attribute may allow javascript: URLs leading to XSS.
+      Validate URL protocol against allowlist.
+      CWE-83: Improper Neutralization of Script in Attributes
+    metadata:
+      cwe: "CWE-83: Improper Neutralization of Script in Attributes in a Web Page"
+      owasp: "A03:2021 - Injection"
+      category: security
+      confidence: MEDIUM
+      likelihood: MEDIUM
+      impact: MEDIUM
+    severity: WARNING
+    languages: [javascript, typescript, jsx, tsx]
+
+  # ---------------------------------------------------------------------------
+  # CWE-88: Improper Neutralization of Argument Delimiters
+  # ---------------------------------------------------------------------------
+  - id: argument-injection
+    patterns:
+      - pattern-either:
+          - pattern: spawn($CMD, [..., $USER_INPUT, ...])
+          - pattern: spawnSync($CMD, [..., $USER_INPUT, ...])
+          - pattern: execFile($CMD, [..., $USER_INPUT, ...])
+      - pattern-not-inside: |
+          const $USER_INPUT = "..."
+    message: |
+      User input in command arguments. Validate input doesn't contain
+      shell metacharacters or argument injection (e.g., --flag=malicious).
+      CWE-88: Argument Injection
+    metadata:
+      cwe: "CWE-88: Improper Neutralization of Argument Delimiters in a Command"
+      owasp: "A03:2021 - Injection"
+      category: security
+      confidence: MEDIUM
+      likelihood: MEDIUM
+      impact: HIGH
+    severity: WARNING
+    languages: [javascript, typescript]
+
+  # ---------------------------------------------------------------------------
+  # CWE-89: SQL Injection
+  # ---------------------------------------------------------------------------
+  - id: sql-injection-template
+    patterns:
+      - pattern-either:
+          - pattern: $DB.query(`SELECT ... ${$INPUT} ...`)
+          - pattern: $DB.query("SELECT ... " + $INPUT + " ...")
+          - pattern: $CONN.execute(`... ${$INPUT} ...`)
+          - pattern: $DB.raw(`... ${$INPUT} ...`)
+          - pattern: $KNEX.raw(`... ${$INPUT} ...`)
+    message: |
+      SQL query built with string concatenation/template. Use parameterized
+      queries or prepared statements.
+      CWE-89: SQL Injection
+    metadata:
+      cwe: "CWE-89: Improper Neutralization of Special Elements used in an SQL Command"
+      owasp: "A03:2021 - Injection"
+      category: security
+      confidence: HIGH
+      likelihood: HIGH
+      impact: HIGH
+    severity: ERROR
+    languages: [javascript, typescript]
+
+  - id: sql-injection-sequelize
+    patterns:
+      - pattern-either:
+          - pattern: $MODEL.findAll({ where: $SEQUELIZE.literal(`... ${$INPUT} ...`) })
+          - pattern: sequelize.query(`... ${$INPUT} ...`)
+    message: |
+      SQL injection in Sequelize. Use parameterized queries.
+      CWE-89: SQL Injection
+    metadata:
+      cwe: "CWE-89: Improper Neutralization of Special Elements used in an SQL Command"
+      owasp: "A03:2021 - Injection"
+      category: security
+      confidence: HIGH
+      likelihood: HIGH
+      impact: HIGH
+    severity: ERROR
+    languages: [javascript, typescript]
+
+  # ---------------------------------------------------------------------------
+  # CWE-94, CWE-95: Code Injection / Eval Injection
+  # ---------------------------------------------------------------------------
+  - id: eval-injection
+    patterns:
+      - pattern-either:
+          - pattern: eval($CODE)
+          - pattern: new Function($CODE)
+          - pattern: new Function(..., $CODE)
+          - pattern: setTimeout($CODE, ...)
+          - pattern: setInterval($CODE, ...)
+      - pattern-not: setTimeout($FUNC, $TIME)
+      - pattern-not: setInterval($FUNC, $TIME)
+      - pattern-not-inside: |
+          const $CODE = "..."
+    message: |
+      Dynamic code execution. Never pass user input to eval() or
+      Function constructor.
+      CWE-94: Code Injection
+    metadata:
+      cwe: "CWE-94: Improper Control of Generation of Code"
+      owasp: "A03:2021 - Injection"
+      category: security
+      confidence: HIGH
+      likelihood: HIGH
+      impact: HIGH
+    severity: ERROR
+    languages: [javascript, typescript]
+
+  - id: vm-code-injection
+    patterns:
+      - pattern-either:
+          - pattern: vm.runInContext($CODE, ...)
+          - pattern: vm.runInNewContext($CODE, ...)
+          - pattern: vm.runInThisContext($CODE)
+          - pattern: new vm.Script($CODE)
+    message: |
+      Code execution in VM context. If $CODE is user-controlled, this is
+      a code injection vulnerability.
+      CWE-94: Code Injection
+    metadata:
+      cwe: "CWE-94: Improper Control of Generation of Code"
+      owasp: "A03:2021 - Injection"
+      category: security
+      confidence: MEDIUM
+      likelihood: MEDIUM
+      impact: HIGH
+    severity: WARNING
+    languages: [javascript, typescript]
+
+  # ---------------------------------------------------------------------------
+  # CWE-113: HTTP Response Splitting / CRLF Injection
+  # ---------------------------------------------------------------------------
+  - id: crlf-header-injection
+    patterns:
+      - pattern-either:
+          - pattern: res.setHeader($NAME, $VALUE)
+          - pattern: res.header($NAME, $VALUE)
+          - pattern: res.set($NAME, $VALUE)
+      - pattern-not-inside: |
+          $VALUE = $VALUE.replace(/[\r\n]/g, ...)
+      - pattern-not-inside: |
+          const $VALUE = "..."
+    message: |
+      HTTP header with dynamic value. Validate input doesn't contain CRLF
+      characters (\\r\\n) to prevent response splitting.
+      CWE-113: HTTP Response Splitting
+    metadata:
+      cwe: "CWE-113: Improper Neutralization of CRLF Sequences in HTTP Headers"
+      owasp: "A03:2021 - Injection"
+      category: security
+      confidence: LOW
+      likelihood: LOW
+      impact: MEDIUM
+    severity: INFO
+    languages: [javascript, typescript]
+
+  # ---------------------------------------------------------------------------
+  # CWE-116: Improper Encoding or Escaping of Output
+  # ---------------------------------------------------------------------------
+  - id: html-response-no-encoding
+    patterns:
+      - pattern-either:
+          - pattern: res.send(`<html>...${$INPUT}...</html>`)
+          - pattern: res.send("<html>..." + $INPUT + "...</html>")
+      - pattern-not-inside: |
+          $ESCAPED = $ENCODER.encode($INPUT)
+    message: |
+      HTML response with unescaped dynamic content. Use a template engine
+      with auto-escaping or escape output manually.
+      CWE-116: Improper Encoding or Escaping of Output
+    metadata:
+      cwe: "CWE-116: Improper Encoding or Escaping of Output"
+      owasp: "A03:2021 - Injection"
+      category: security
+      confidence: MEDIUM
+      likelihood: MEDIUM
+      impact: MEDIUM
+    severity: WARNING
+    languages: [javascript, typescript]
+
+  # ---------------------------------------------------------------------------
+  # CWE-184: Incomplete List of Disallowed Inputs
+  # ---------------------------------------------------------------------------
+  - id: incomplete-xss-filter
+    patterns:
+      - pattern-either:
+          - pattern: $INPUT.replace('<script>', '')
+          - pattern: $INPUT.replace(/<script>/g, '')
+          - pattern: $INPUT.replace(/<script>/gi, '')
+          - pattern: |
+              if ($INPUT.includes('<script>')) { ... }
+    message: |
+      Incomplete XSS blocklist. Attackers can bypass with variations like
+      <SCRIPT>, <img onerror>, etc. Use DOMPurify or allowlist validation.
+      CWE-184: Incomplete List of Disallowed Inputs
+    metadata:
+      cwe: "CWE-184: Incomplete List of Disallowed Inputs"
+      owasp: "A03:2021 - Injection"
+      category: security
+      confidence: HIGH
+      likelihood: HIGH
+      impact: MEDIUM
+    severity: WARNING
+    languages: [javascript, typescript]
+
+  # ---------------------------------------------------------------------------
+  # CWE-434: Unrestricted Upload of File with Dangerous Type
+  # ---------------------------------------------------------------------------
+  - id: file-upload-no-type-check
+    patterns:
+      - pattern-either:
+          - pattern: uploadBytes($REF, $FILE)
+          - pattern: uploadBytesResumable($REF, $FILE)
+          - pattern: multer({...}).single($FIELD)
+          - pattern: multer({...}).array($FIELD)
+      - pattern-not-inside: |
+          if ($FILE.type.startsWith('image/')) { ... }
+      - pattern-not-inside: |
+          if ($ALLOWED_TYPES.includes($FILE.type)) { ... }
+      - pattern-not-inside: |
+          fileFilter: ...
+    message: |
+      File upload without content-type validation. Validate file types
+      server-side against an allowlist.
+      CWE-434: Unrestricted Upload of File with Dangerous Type
+    metadata:
+      cwe: "CWE-434: Unrestricted Upload of File with Dangerous Type"
+      owasp: "A03:2021 - Injection"
+      category: security
+      confidence: MEDIUM
+      likelihood: MEDIUM
+      impact: HIGH
+    severity: WARNING
+    languages: [javascript, typescript, jsx, tsx]
+
+  - id: firebase-upload-no-validation
+    patterns:
+      - pattern: uploadBytes(ref($STORAGE, $PATH), $FILE)
+      - pattern-not-inside: |
+          if ($FILE.type.startsWith(...)) { ... }
+      - pattern-not-inside: |
+          if ($ALLOWED.includes($FILE.type)) { ... }
+    message: |
+      Firebase Storage upload without file type validation.
+      Validate contentType in client code and Storage rules.
+      CWE-434: Unrestricted Upload of File with Dangerous Type
+    metadata:
+      cwe: "CWE-434: Unrestricted Upload of File with Dangerous Type"
+      owasp: "A03:2021 - Injection"
+      category: security
+      confidence: MEDIUM
+      likelihood: MEDIUM
+      impact: MEDIUM
+    severity: WARNING
+    languages: [javascript, typescript, jsx, tsx]
+
+  # ---------------------------------------------------------------------------
+  # CWE-470: Use of Externally-Controlled Input to Select Classes or Code
+  # ---------------------------------------------------------------------------
+  - id: unsafe-dynamic-access
+    patterns:
+      - pattern-either:
+          - pattern: $OBJ[$USER_INPUT]()
+          - pattern: global[$USER_INPUT]
+          - pattern: window[$USER_INPUT]
+      - pattern-not-inside: |
+          if ($ALLOWED.includes($USER_INPUT)) { ... }
+      - pattern-not-inside: |
+          const $USER_INPUT = "..."
+    message: |
+      Dynamic property/method access with potentially user-controlled key.
+      Validate against allowlist of permitted names.
+      CWE-470: Unsafe Reflection
+    metadata:
+      cwe: "CWE-470: Use of Externally-Controlled Input to Select Classes or Code"
+      owasp: "A03:2021 - Injection"
+      category: security
+      confidence: MEDIUM
+      likelihood: MEDIUM
+      impact: HIGH
+    severity: WARNING
+    languages: [javascript, typescript]
+
+  # ---------------------------------------------------------------------------
+  # CWE-471: Modification of Assumed-Immutable Data (MAID)
+  # ---------------------------------------------------------------------------
+  - id: prototype-modification
+    patterns:
+      - pattern-either:
+          - pattern: Object.prototype.$PROP = $VALUE
+          - pattern: Array.prototype.$PROP = $VALUE
+          - pattern: String.prototype.$PROP = $VALUE
+          - pattern: $OBJ.__proto__.$PROP = $VALUE
+          - pattern: $OBJ['__proto__'] = $VALUE
+          - pattern: $OBJ.constructor.prototype.$PROP = $VALUE
+    message: |
+      Prototype modification detected. This affects all objects and can
+      lead to security vulnerabilities or unexpected behavior.
+      CWE-471: Modification of Assumed-Immutable Data
+    metadata:
+      cwe: "CWE-471: Modification of Assumed-Immutable Data (MAID)"
+      owasp: "A03:2021 - Injection"
+      category: security
+      confidence: HIGH
+      likelihood: MEDIUM
+      impact: HIGH
+    severity: ERROR
+    languages: [javascript, typescript]
+
+  # ---------------------------------------------------------------------------
+  # CWE-611: XML External Entity (XXE)
+  # ---------------------------------------------------------------------------
+  - id: xxe-xml-parsing
+    patterns:
+      - pattern-either:
+          - pattern: new DOMParser().parseFromString($XML, ...)
+          - pattern: $PARSER.parseString($XML, ...)
+          - pattern: libxmljs.parseXml($XML)
+          - pattern: xml2js.parseString($XML, ...)
+      - pattern-not-inside: |
+          { ..., noent: false, ... }
+    message: |
+      XML parsing may be vulnerable to XXE. Disable external entities
+      and DTD processing in parser configuration.
+      CWE-611: XML External Entity (XXE)
+    metadata:
+      cwe: "CWE-611: Improper Restriction of XML External Entity Reference"
+      owasp: "A03:2021 - Injection"
+      category: security
+      confidence: MEDIUM
+      likelihood: MEDIUM
+      impact: HIGH
+    severity: WARNING
+    languages: [javascript, typescript]
+
+  # ---------------------------------------------------------------------------
+  # CWE-643: XPath Injection
+  # ---------------------------------------------------------------------------
+  - id: xpath-injection
+    patterns:
+      - pattern-either:
+          - pattern: $DOC.evaluate(`//${$INPUT}`, ...)
+          - pattern: xpath.select(`//${$INPUT}`, ...)
+          - pattern: xpath.select("//" + $INPUT, ...)
+    message: |
+      XPath query with user input. Use parameterized queries or
+      strictly validate input.
+      CWE-643: XPath Injection
+    metadata:
+      cwe: "CWE-643: Improper Neutralization of Data within XPath Expressions"
+      owasp: "A03:2021 - Injection"
+      category: security
+      confidence: HIGH
+      likelihood: MEDIUM
+      impact: HIGH
+    severity: ERROR
+    languages: [javascript, typescript]
+
+  # ---------------------------------------------------------------------------
+  # CWE-917: Expression Language Injection (Template Injection)
+  # ---------------------------------------------------------------------------
+  - id: template-injection-ejs
+    patterns:
+      - pattern-either:
+          - pattern: ejs.render($TEMPLATE, {..., $KEY: $INPUT, ...})
+          - pattern: ejs.renderFile($FILE, {..., $KEY: $INPUT, ...})
+      - pattern-not-inside: |
+          const $INPUT = "..."
+    message: |
+      Template rendering with dynamic input. Ensure proper escaping.
+      Never allow user-controlled template strings.
+      CWE-917: Expression Language Injection
+    metadata:
+      cwe: "CWE-917: Improper Neutralization of Special Elements used in an Expression Language Statement"
+      owasp: "A03:2021 - Injection"
+      category: security
+      confidence: MEDIUM
+      likelihood: MEDIUM
+      impact: HIGH
+    severity: WARNING
+    languages: [javascript, typescript]
+
+  - id: template-injection-user-template
+    patterns:
+      - pattern-either:
+          - pattern: |
+              $TEMPLATE = $USER_INPUT
+              ...
+              ejs.render($TEMPLATE, ...)
+          - pattern: |
+              nunjucks.renderString($USER_INPUT, ...)
+          - pattern: |
+              Handlebars.compile($USER_INPUT)
+    message: |
+      User-controlled template string. This allows Server-Side Template
+      Injection (SSTI). Never use user input as template content.
+      CWE-917: Expression Language Injection
+    metadata:
+      cwe: "CWE-917: Improper Neutralization of Special Elements used in an Expression Language Statement"
+      owasp: "A03:2021 - Injection"
+      category: security
+      confidence: HIGH
+      likelihood: HIGH
+      impact: HIGH
+    severity: ERROR
+    languages: [javascript, typescript]
+
+  # ---------------------------------------------------------------------------
+  # CWE-943: NoSQL Injection
+  # ---------------------------------------------------------------------------
+  - id: nosql-injection-mongodb
+    patterns:
+      - pattern-either:
+          - pattern: $COLLECTION.find({..., $FIELD: $INPUT, ...})
+          - pattern: $COLLECTION.findOne({..., $FIELD: $INPUT, ...})
+          - pattern: $COLLECTION.updateOne({..., $FIELD: $INPUT, ...}, ...)
+          - pattern: $COLLECTION.deleteOne({..., $FIELD: $INPUT, ...})
+      - pattern-not-inside: |
+          if (typeof $INPUT === 'string') { ... }
+      - pattern-not-inside: |
+          $INPUT = String($INPUT)
+    message: |
+      Potential NoSQL injection in MongoDB query. Validate input type and
+      ensure it doesn't contain query operators ($ne, $gt, $regex, etc).
+      CWE-943: NoSQL Injection
+    metadata:
+      cwe: "CWE-943: Improper Neutralization of Special Elements in Data Query Logic"
+      owasp: "A03:2021 - Injection"
+      category: security
+      confidence: MEDIUM
+      likelihood: MEDIUM
+      impact: HIGH
+    severity: WARNING
+    languages: [javascript, typescript]
+
+  - id: nosql-injection-where
+    patterns:
+      - pattern-either:
+          - pattern: $COLLECTION.find({$where: $INPUT})
+          - pattern: $COLLECTION.find({$where: `function() { ${$INPUT} }`})
+    message: |
+      MongoDB $where with user input allows code execution.
+      Avoid $where or ensure input is strictly validated.
+      CWE-943: NoSQL Injection
+    metadata:
+      cwe: "CWE-943: Improper Neutralization of Special Elements in Data Query Logic"
+      owasp: "A03:2021 - Injection"
+      category: security
+      confidence: HIGH
+      likelihood: HIGH
+      impact: HIGH
+    severity: ERROR
+    languages: [javascript, typescript]
+
+
+  # ============================================================================
+  # FIREBASE-SPECIFIC SECURITY RULES FOR JS/JSX SOURCE CODE
+  # ============================================================================
+
+  - id: firebase-stored-xss
+    patterns:
+      - pattern-either:
+          - pattern: addDoc($COLLECTION, {..., content: $INPUT, ...})
+          - pattern: setDoc($REF, {..., content: $INPUT, ...})
+          - pattern: setDoc($REF, {..., html: $INPUT, ...})
+          - pattern: updateDoc($REF, {content: $INPUT})
+          - pattern: updateDoc($REF, {body: $INPUT})
+      - pattern-not-inside: |
+          DOMPurify.sanitize($INPUT)
+      - pattern-not-inside: |
+          sanitizeHtml($INPUT)
+    message: |
+      User content stored in Firestore without sanitization. This could
+      lead to stored XSS when displayed. Sanitize HTML with DOMPurify.
+      CWE-79: Stored XSS
+    metadata:
+      cwe: "CWE-79: Improper Neutralization of Input During Web Page Generation"
+      owasp: "A03:2021 - Injection"
+      category: security
+      confidence: MEDIUM
+      likelihood: MEDIUM
+      impact: MEDIUM
+    severity: WARNING
+    languages: [javascript, typescript, jsx, tsx]
+
+  - id: firebase-message-sender-spoofing
+    patterns:
+      - pattern: |
+          addDoc(collection($DB, 'messages'), {
+            ...,
+            senderId: $SENDER_ID,
+            ...
+          })
+      - pattern-not: |
+          addDoc(collection($DB, 'messages'), {
+            ...,
+            senderId: $AUTH.currentUser.uid,
+            ...
+          })
+      - pattern-not: |
+          addDoc(collection($DB, 'messages'), {
+            ...,
+            senderId: auth.currentUser.uid,
+            ...
+          })
+    message: |
+      Message created with potentially spoofed sender ID.
+      Always use auth.currentUser.uid for senderId.
+      CWE-284: Improper Access Control
+    metadata:
+      cwe: "CWE-284: Improper Access Control"
+      owasp: "A01:2021 - Broken Access Control"
+      category: security
+      confidence: MEDIUM
+      likelihood: MEDIUM
+      impact: MEDIUM
+    severity: WARNING
+    languages: [javascript, typescript, jsx, tsx]
+
+  - id: firebase-postmessage-wildcard
+    patterns:
+      - pattern-either:
+          - pattern: window.postMessage($DATA, '*')
+          - pattern: $IFRAME.contentWindow.postMessage($DATA, '*')
+          - pattern: parent.postMessage($DATA, '*')
+    message: |
+      postMessage with wildcard origin '*'. This allows any website to
+      receive the message. Specify exact target origin.
+      CWE-200: Exposure of Sensitive Information
+    metadata:
+      cwe: "CWE-200: Exposure of Sensitive Information to an Unauthorized Actor"
+      owasp: "A01:2021 - Broken Access Control"
+      category: security
+      confidence: HIGH
+      likelihood: MEDIUM
+      impact: MEDIUM
+    severity: WARNING
+    languages: [javascript, typescript, jsx, tsx]

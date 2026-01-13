@@ -1,0 +1,874 @@
+{
+  "metadata": {
+    "scanDate": "2025-12-15T15:37:22.173Z",
+    "duration": "96s",
+    "target": "https://gpt-2-22b6d.firebaseapp.com",
+    "appName": "Social Media App",
+    "projectId": "gpt-2-22b6d",
+    "scope": "OWASP Top 10:2021 A01-A03"
+  },
+  "summary": {
+    "total": 30,
+    "bySeverity": {
+      "CRITICAL": 1,
+      "HIGH": 24,
+      "MEDIUM": 5,
+      "LOW": 0,
+      "INFO": 0
+    },
+    "byCategory": {
+      "A01": 13,
+      "A02": 5,
+      "A03": 12
+    },
+    "byTool": {
+      "firebase-emulator": 4,
+      "static-analysis": 3,
+      "semgrep": 20,
+      "crypto-scanner": 3
+    },
+    "riskScore": 140,
+    "riskLevel": "CRITICAL",
+    "deduplication": {
+      "originalCount": 36,
+      "deduplicatedCount": 30,
+      "duplicatesRemoved": 6,
+      "reductionPercent": 17
+    }
+  },
+  "findings": [
+    {
+      "id": "VULN-001",
+      "category": "A01",
+      "cwe": "CWE-922",
+      "cweName": "Insecure Storage of Sensitive Information",
+      "severity": "CRITICAL",
+      "title": "Sensitive Configuration Data Accessible",
+      "description": "API keys or other sensitive configuration stored in Firestore is accessible to regular users.",
+      "evidence": "Regular user accessed /config/api_keys document",
+      "remediation": "Sensitive config should not be in client-accessible Firestore. Use Cloud Functions or secure backend storage.",
+      "tool": "firebase-emulator",
+      "timestamp": "2025-12-15T15:35:53.457Z",
+      "tools": [
+        "firebase-emulator"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "02304e7377367877",
+      "_fingerprintSource": "cwe:CWE-922||cat:A01||title:sensitive configuration data accessible"
+    },
+    {
+      "id": "VULN-002",
+      "category": "A01",
+      "cwe": "CWE-200",
+      "cweName": "Exposure of Sensitive Information",
+      "severity": "HIGH",
+      "title": "User Enumeration via Collection Listing",
+      "description": "Unauthenticated users can list/enumerate user documents, exposing user data.",
+      "evidence": "Unauthenticated list query on /users succeeded",
+      "remediation": "Prevent listing: require authentication and consider restricting list queries",
+      "tool": "firebase-emulator",
+      "timestamp": "2025-12-15T15:35:53.457Z",
+      "tools": [
+        "firebase-emulator"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "a1ba02402a01e8b1",
+      "_fingerprintSource": "cwe:CWE-200||cat:A01||title:user enumeration via collection listing"
+    },
+    {
+      "id": "VULN-003",
+      "category": "A01",
+      "cwe": "CWE-284",
+      "cweName": "Improper Access Control",
+      "severity": "HIGH",
+      "title": "Unrestricted Read Access",
+      "description": "Rule allows anyone to read data without authentication",
+      "evidence": {
+        "rule": "allow read: if true"
+      },
+      "remediation": "Change to: allow read: if request.auth != null",
+      "tool": "static-analysis",
+      "tools": [
+        "static-analysis"
+      ],
+      "duplicateCount": 5,
+      "mergedFrom": [
+        {
+          "id": "VULN-001",
+          "tool": "static-analysis",
+          "severity": "HIGH"
+        },
+        {
+          "id": "VULN-002",
+          "tool": "static-analysis",
+          "severity": "HIGH"
+        },
+        {
+          "id": "VULN-003",
+          "tool": "static-analysis",
+          "severity": "HIGH"
+        },
+        {
+          "id": "VULN-004",
+          "tool": "static-analysis",
+          "severity": "HIGH"
+        },
+        {
+          "id": "VULN-005",
+          "tool": "static-analysis",
+          "severity": "HIGH"
+        }
+      ],
+      "timestamp": "2025-12-15T15:35:46.064Z",
+      "confirmed": false,
+      "_fingerprint": "c840b8d7ff27a8ee",
+      "_fingerprintSource": "cwe:CWE-284||cat:A01||loc:rule:allow read: if true||vuln:rule:allow read: if true||title:unrestricted read access"
+    },
+    {
+      "id": "VULN-004",
+      "category": "A01",
+      "cwe": "CWE-284",
+      "cweName": "Improper Access Control",
+      "severity": "HIGH",
+      "title": "Unauthenticated Read Access to User Data",
+      "description": "Firestore rules allow unauthenticated users to read user documents. This exposes potentially sensitive user information to anyone.",
+      "evidence": "Unauthenticated read on /users/{userId} succeeded",
+      "remediation": "Add authentication check: allow read: if request.auth != null",
+      "tool": "firebase-emulator",
+      "timestamp": "2025-12-15T15:35:53.457Z",
+      "tools": [
+        "firebase-emulator"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "cc5cee82832a3308",
+      "_fingerprintSource": "cwe:CWE-284||cat:A01||title:unauthenticated read access to user data"
+    },
+    {
+      "id": "VULN-005",
+      "category": "A01",
+      "cwe": "CWE-639",
+      "cweName": "IDOR",
+      "severity": "HIGH",
+      "title": "IDOR Vulnerability on User Profiles",
+      "description": "Users can access other users' profiles by simply changing the document ID in the request.",
+      "evidence": "alice123 accessed bob456's profile by changing document ID",
+      "remediation": "Restrict reads to own profile: allow read: if request.auth.uid == userId",
+      "tool": "firebase-emulator",
+      "timestamp": "2025-12-15T15:35:53.457Z",
+      "tools": [
+        "firebase-emulator"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "8116391c3befc481",
+      "_fingerprintSource": "cwe:CWE-639||cat:A01||title:idor vulnerability on user profiles"
+    },
+    {
+      "id": "VULN-006",
+      "category": "A01",
+      "cwe": "CWE-863",
+      "cweName": "Incorrect Authorization",
+      "severity": "HIGH",
+      "title": "client-side-isadmin",
+      "description": "Client-side admin check. CWE-863",
+      "evidence": {
+        "file": "/home/nillof/Exjobb/GPT2/mini-social/public/app.js",
+        "line": 200,
+        "endLine": 200,
+        "code": "$(\"admin-nav-btn\").classList.toggle(\"hidden\", !currentUserDoc.isAdmin && !currentUserDoc.isOwner);"
+      },
+      "remediation": null,
+      "tool": "semgrep",
+      "timestamp": "2025-12-15T15:35:57.124Z",
+      "tools": [
+        "semgrep"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "a41ff2d07962345b",
+      "_fingerprintSource": "cwe:CWE-863||cat:A01||loc:file:/home/nillof/Exjobb/GPT2/mini-social/public/app.js|line:200||vuln:code:$(admin-nav-btn).classlist.toggle(hidden, !currentuserdoc.isadmin && !currentuse||title:client-side-isadmin"
+    },
+    {
+      "id": "VULN-007",
+      "category": "A01",
+      "cwe": "CWE-863",
+      "cweName": "Incorrect Authorization",
+      "severity": "HIGH",
+      "title": "client-side-isadmin",
+      "description": "Client-side admin check. CWE-863",
+      "evidence": {
+        "file": "/home/nillof/Exjobb/GPT2/mini-social/public/app.js",
+        "line": 215,
+        "endLine": 215,
+        "code": "if (currentUserDoc.isAdmin || currentUserDoc.isOwner) loadAdmin();"
+      },
+      "remediation": null,
+      "tool": "semgrep",
+      "timestamp": "2025-12-15T15:35:57.124Z",
+      "tools": [
+        "semgrep"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "5bffd90601684ad8",
+      "_fingerprintSource": "cwe:CWE-863||cat:A01||loc:file:/home/nillof/Exjobb/GPT2/mini-social/public/app.js|line:215||vuln:code:if (currentuserdoc.isadmin || currentuserdoc.isowner) loadadmin();||title:client-side-isadmin"
+    },
+    {
+      "id": "VULN-008",
+      "category": "A01",
+      "cwe": "CWE-863",
+      "cweName": "Incorrect Authorization",
+      "severity": "HIGH",
+      "title": "client-side-isadmin",
+      "description": "Client-side admin check. CWE-863",
+      "evidence": {
+        "file": "/home/nillof/Exjobb/GPT2/mini-social/public/app.js",
+        "line": 374,
+        "endLine": 374,
+        "code": "currentUserDoc.isAdmin ||"
+      },
+      "remediation": null,
+      "tool": "semgrep",
+      "timestamp": "2025-12-15T15:35:57.125Z",
+      "tools": [
+        "semgrep"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "196d14baff67b53a",
+      "_fingerprintSource": "cwe:CWE-863||cat:A01||loc:file:/home/nillof/Exjobb/GPT2/mini-social/public/app.js|line:374||vuln:code:currentuserdoc.isadmin ||||title:client-side-isadmin"
+    },
+    {
+      "id": "VULN-009",
+      "category": "A01",
+      "cwe": "CWE-863",
+      "cweName": "Incorrect Authorization",
+      "severity": "HIGH",
+      "title": "client-side-isadmin",
+      "description": "Client-side admin check. CWE-863",
+      "evidence": {
+        "file": "/home/nillof/Exjobb/GPT2/mini-social/public/app.js",
+        "line": 400,
+        "endLine": 400,
+        "code": "(p.authorId === currentUser.uid || currentUserDoc.isAdmin || currentUserDoc.isOwner)"
+      },
+      "remediation": null,
+      "tool": "semgrep",
+      "timestamp": "2025-12-15T15:35:57.125Z",
+      "tools": [
+        "semgrep"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "4072967d145decb9",
+      "_fingerprintSource": "cwe:CWE-863||cat:A01||loc:file:/home/nillof/Exjobb/GPT2/mini-social/public/app.js|line:400||vuln:code:(p.authorid === currentuser.uid || currentuserdoc.isadmin || currentuserdoc.isow||title:client-side-isadmin"
+    },
+    {
+      "id": "VULN-010",
+      "category": "A01",
+      "cwe": "CWE-863",
+      "cweName": "Incorrect Authorization",
+      "severity": "HIGH",
+      "title": "client-side-isadmin",
+      "description": "Client-side admin check. CWE-863",
+      "evidence": {
+        "file": "/home/nillof/Exjobb/GPT2/mini-social/public/app.js",
+        "line": 1139,
+        "endLine": 1139,
+        "code": "if (!currentUserDoc?.isAdmin && !currentUserDoc?.isOwner) return;"
+      },
+      "remediation": null,
+      "tool": "semgrep",
+      "timestamp": "2025-12-15T15:35:57.125Z",
+      "tools": [
+        "semgrep"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "db73416769bd0921",
+      "_fingerprintSource": "cwe:CWE-863||cat:A01||loc:file:/home/nillof/Exjobb/GPT2/mini-social/public/app.js|line:1139||vuln:code:if (!currentuserdoc?.isadmin && !currentuserdoc?.isowner) return;||title:client-side-isadmin"
+    },
+    {
+      "id": "VULN-011",
+      "category": "A01",
+      "cwe": "CWE-863",
+      "cweName": "Incorrect Authorization",
+      "severity": "HIGH",
+      "title": "client-side-isadmin",
+      "description": "Client-side admin check. CWE-863",
+      "evidence": {
+        "file": "/home/nillof/Exjobb/GPT2/mini-social/public/app.js",
+        "line": 1161,
+        "endLine": 1161,
+        "code": "Admin: ${u.isAdmin ? \"Yes\" : \"No\"} · Owner: ${u.isOwner ? \"Yes\" : \"No\"}<br><br>"
+      },
+      "remediation": null,
+      "tool": "semgrep",
+      "timestamp": "2025-12-15T15:35:57.126Z",
+      "tools": [
+        "semgrep"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "735cbb9ffcb4f739",
+      "_fingerprintSource": "cwe:CWE-863||cat:A01||loc:file:/home/nillof/Exjobb/GPT2/mini-social/public/app.js|line:1161||vuln:code:admin: ${u.isadmin ? yes : no} · owner: ${u.isowner ? yes : no}<br><br>||title:client-side-isadmin"
+    },
+    {
+      "id": "VULN-012",
+      "category": "A01",
+      "cwe": "CWE-863",
+      "cweName": "Incorrect Authorization",
+      "severity": "HIGH",
+      "title": "client-side-isadmin",
+      "description": "Client-side admin check. CWE-863",
+      "evidence": {
+        "file": "/home/nillof/Exjobb/GPT2/mini-social/public/app.js",
+        "line": 1165,
+        "endLine": 1165,
+        "code": "${u.isAdmin ? \"Remove Admin\" : \"Make Admin\"}"
+      },
+      "remediation": null,
+      "tool": "semgrep",
+      "timestamp": "2025-12-15T15:35:57.126Z",
+      "tools": [
+        "semgrep"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "fa4b9cc75b54d7aa",
+      "_fingerprintSource": "cwe:CWE-863||cat:A01||loc:file:/home/nillof/Exjobb/GPT2/mini-social/public/app.js|line:1165||vuln:code:${u.isadmin ? remove admin : make admin}||title:client-side-isadmin"
+    },
+    {
+      "id": "VULN-013",
+      "category": "A01",
+      "cwe": "CWE-863",
+      "cweName": "Incorrect Authorization",
+      "severity": "HIGH",
+      "title": "client-side-isadmin",
+      "description": "Client-side admin check. CWE-863",
+      "evidence": {
+        "file": "/home/nillof/Exjobb/GPT2/mini-social/public/app.js",
+        "line": 1192,
+        "endLine": 1192,
+        "code": "await ref.update({ isAdmin: !snap.data().isAdmin });"
+      },
+      "remediation": null,
+      "tool": "semgrep",
+      "timestamp": "2025-12-15T15:35:57.126Z",
+      "tools": [
+        "semgrep"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "9707db67064d5c8e",
+      "_fingerprintSource": "cwe:CWE-863||cat:A01||loc:file:/home/nillof/Exjobb/GPT2/mini-social/public/app.js|line:1192||vuln:code:await ref.update({ isadmin: !snap.data().isadmin });||title:client-side-isadmin"
+    },
+    {
+      "id": "VULN-014",
+      "category": "A02",
+      "cwe": "CWE-798",
+      "cweName": "Unknown",
+      "severity": "HIGH",
+      "title": "Hardcoded Google API Key found",
+      "description": "Found potential Google API Key in https://gpt-2-22b6d.firebaseapp.com/app.js",
+      "evidence": {
+        "pattern": "Google API Key",
+        "source": "https://gpt-2-22b6d.firebaseapp.com/app.js",
+        "redactedMatch": "AIzaSyAOVf...TU-lg"
+      },
+      "remediation": null,
+      "tool": "crypto-scanner",
+      "timestamp": "2025-12-15T15:36:58.806Z",
+      "tools": [
+        "crypto-scanner"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "3d0538ce25f56f4c",
+      "_fingerprintSource": "cwe:CWE-798||cat:A02||title:hardcoded google api key found"
+    },
+    {
+      "id": "VULN-015",
+      "category": "A03",
+      "cwe": "CWE-610",
+      "cweName": "Unknown",
+      "severity": "HIGH",
+      "title": "external-reference-script-src",
+      "description": "Dynamic script.src. CWE-610",
+      "evidence": {
+        "file": "/home/nillof/Exjobb/GPT2/mini-social/public/app.js",
+        "line": 620,
+        "endLine": 620,
+        "code": "img.src = p.imageUrl;"
+      },
+      "remediation": null,
+      "tool": "semgrep",
+      "timestamp": "2025-12-15T15:35:57.125Z",
+      "tools": [
+        "semgrep"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "2317e99d606e66e4",
+      "_fingerprintSource": "cwe:CWE-610||cat:A03||loc:file:/home/nillof/Exjobb/GPT2/mini-social/public/app.js|line:620||vuln:code:img.src = p.imageurl;||title:external-reference-script-src"
+    },
+    {
+      "id": "VULN-016",
+      "category": "A03",
+      "cwe": "CWE-79",
+      "cweName": "Cross-site Scripting (XSS)",
+      "severity": "HIGH",
+      "title": "dom-xss-innerhtml",
+      "description": "innerHTML XSS. CWE-79",
+      "evidence": {
+        "file": "/home/nillof/Exjobb/GPT2/mini-social/public/app.js",
+        "line": 277,
+        "endLine": 284,
+        "code": "div.innerHTML = `\n        <div class=\"profile-banner ${u.banner || \"banner-default\"}\"></div>\n        <div class=\"profile-card-body\">\n          <strong>${u.displayName}</strong><br>\n          <small>${u.city || \"\"} ${u.country || \"\"}</small><br>\n          <a href=\"profile.html?uid=${doc.id}\">Open Profile</a>\n        </div>\n      `;"
+      },
+      "remediation": null,
+      "tool": "semgrep",
+      "timestamp": "2025-12-15T15:35:57.125Z",
+      "tools": [
+        "semgrep"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "3f6a3a6a28f23f25",
+      "_fingerprintSource": "cwe:CWE-79||cat:A03||loc:file:/home/nillof/Exjobb/GPT2/mini-social/public/app.js|line:277||vuln:code:div.innerhtml = ` <div class=profile-banner ${u.banner || banner-default}></div>||title:dom xss"
+    },
+    {
+      "id": "VULN-017",
+      "category": "A03",
+      "cwe": "CWE-79",
+      "cweName": "Cross-site Scripting (XSS)",
+      "severity": "HIGH",
+      "title": "dom-xss-innerhtml",
+      "description": "innerHTML XSS. CWE-79",
+      "evidence": {
+        "file": "/home/nillof/Exjobb/GPT2/mini-social/public/app.js",
+        "line": 381,
+        "endLine": 407,
+        "code": "div.innerHTML = `\n        <div class=\"post-header\">\n          <div><strong>${p.authorName}</strong></div>\n          <div class=\"post-meta\">${formatDate(p.createdAt)} · ${p.visibility}</div>\n        </div>\n\n        <p>${p.text}</p>\n\n        ${p.imageUrl ? `\n          <img src=\"${p.imageUrl}\"\n               style=\"max-width:100%;border-radius:6px;margin-bottom:0.4rem;\">`\n        : \"\"}\n\n        <div class=\"post-actions\">\n          <button data-like=\"${doc.id}\">Like</button>\n          <button data-comment=\"${doc.id}\">Comment</button>\n          <button data-addfriend=\"${p.authorId}\">Add Friend</button>\n          ${p.imageUrl ? `<button data-download=\"${p.imageUrl}\">Download</button>` : \"\"}\n          ${\n            (p.authorId === currentUser.uid || currentUserDoc.isAdmin || currentUserDoc.isOwner)\n            ? `<button data-deletepost=\"${doc.id}\" class=\"danger\">Delete</button>`\n            : \"\"\n          }\n        </div>\n\n        <div id=\"comments-${doc.id}\" class=\"comments\"></div>\n      `;"
+      },
+      "remediation": null,
+      "tool": "semgrep",
+      "timestamp": "2025-12-15T15:35:57.125Z",
+      "tools": [
+        "semgrep"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "b742203be59e4591",
+      "_fingerprintSource": "cwe:CWE-79||cat:A03||loc:file:/home/nillof/Exjobb/GPT2/mini-social/public/app.js|line:381||vuln:code:div.innerhtml = ` <div class=post-header> <div><strong>${p.authorname}</strong><||title:dom xss"
+    },
+    {
+      "id": "VULN-018",
+      "category": "A03",
+      "cwe": "CWE-79",
+      "cweName": "Cross-site Scripting (XSS)",
+      "severity": "HIGH",
+      "title": "dom-xss-innerhtml",
+      "description": "innerHTML XSS. CWE-79",
+      "evidence": {
+        "file": "/home/nillof/Exjobb/GPT2/mini-social/public/app.js",
+        "line": 506,
+        "endLine": 506,
+        "code": "$(\"my-profile-info\").innerHTML = card;"
+      },
+      "remediation": null,
+      "tool": "semgrep",
+      "timestamp": "2025-12-15T15:35:57.125Z",
+      "tools": [
+        "semgrep"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "a052d204eecd9056",
+      "_fingerprintSource": "cwe:CWE-79||cat:A03||loc:file:/home/nillof/Exjobb/GPT2/mini-social/public/app.js|line:506||vuln:code:$(my-profile-info).innerhtml = card;||title:dom xss"
+    },
+    {
+      "id": "VULN-019",
+      "category": "A03",
+      "cwe": "CWE-79",
+      "cweName": "Cross-site Scripting (XSS)",
+      "severity": "HIGH",
+      "title": "dom-xss-innerhtml",
+      "description": "innerHTML XSS. CWE-79",
+      "evidence": {
+        "file": "/home/nillof/Exjobb/GPT2/mini-social/public/app.js",
+        "line": 538,
+        "endLine": 542,
+        "code": "div.innerHTML = `\n      <div class=\"post-meta\">${formatDate(p.createdAt)} · ${p.visibility}</div>\n      <p>${p.text}</p>\n      ${p.imageUrl ? `<img src=\"${p.imageUrl}\" style=\"max-width:100%;\">` : \"\"}\n    `;"
+      },
+      "remediation": null,
+      "tool": "semgrep",
+      "timestamp": "2025-12-15T15:35:57.125Z",
+      "tools": [
+        "semgrep"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "583f2ae3dc1b516a",
+      "_fingerprintSource": "cwe:CWE-79||cat:A03||loc:file:/home/nillof/Exjobb/GPT2/mini-social/public/app.js|line:538||vuln:code:div.innerhtml = ` <div class=post-meta>${formatdate(p.createdat)} · ${p.visibili||title:dom xss"
+    },
+    {
+      "id": "VULN-020",
+      "category": "A03",
+      "cwe": "CWE-79",
+      "cweName": "Cross-site Scripting (XSS)",
+      "severity": "HIGH",
+      "title": "dom-xss-innerhtml",
+      "description": "innerHTML XSS. CWE-79",
+      "evidence": {
+        "file": "/home/nillof/Exjobb/GPT2/mini-social/public/app.js",
+        "line": 649,
+        "endLine": 652,
+        "code": "div.innerHTML = `\n      <strong>Code:</strong> ${r.code}<br>\n      <small>Used ${r.usedCount || 0} times</small>\n    `;"
+      },
+      "remediation": null,
+      "tool": "semgrep",
+      "timestamp": "2025-12-15T15:35:57.125Z",
+      "tools": [
+        "semgrep"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "a5a3095c4f3ec142",
+      "_fingerprintSource": "cwe:CWE-79||cat:A03||loc:file:/home/nillof/Exjobb/GPT2/mini-social/public/app.js|line:649||vuln:code:div.innerhtml = ` <strong>code:</strong> ${r.code}<br> <small>used ${r.usedcount||title:dom xss"
+    },
+    {
+      "id": "VULN-021",
+      "category": "A03",
+      "cwe": "CWE-79",
+      "cweName": "Cross-site Scripting (XSS)",
+      "severity": "HIGH",
+      "title": "dom-xss-innerhtml",
+      "description": "innerHTML XSS. CWE-79",
+      "evidence": {
+        "file": "/home/nillof/Exjobb/GPT2/mini-social/public/app.js",
+        "line": 757,
+        "endLine": 761,
+        "code": "div.innerHTML = `\n      <strong>${u.displayName}</strong><br>\n      Age: ${u.age || \"?\"}<br>\n      ${u.city || \"\"} ${u.country || \"\"}\n    `;"
+      },
+      "remediation": null,
+      "tool": "semgrep",
+      "timestamp": "2025-12-15T15:35:57.125Z",
+      "tools": [
+        "semgrep"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "d8d4d81deeb35d13",
+      "_fingerprintSource": "cwe:CWE-79||cat:A03||loc:file:/home/nillof/Exjobb/GPT2/mini-social/public/app.js|line:757||vuln:code:div.innerhtml = ` <strong>${u.displayname}</strong><br> age: ${u.age || ?}<br> $||title:dom xss"
+    },
+    {
+      "id": "VULN-022",
+      "category": "A03",
+      "cwe": "CWE-79",
+      "cweName": "Cross-site Scripting (XSS)",
+      "severity": "HIGH",
+      "title": "dom-xss-innerhtml",
+      "description": "innerHTML XSS. CWE-79",
+      "evidence": {
+        "file": "/home/nillof/Exjobb/GPT2/mini-social/public/app.js",
+        "line": 805
+      },
+      "remediation": null,
+      "tool": "semgrep",
+      "tools": [
+        "semgrep"
+      ],
+      "duplicateCount": 2,
+      "mergedFrom": [
+        {
+          "id": "VULN-024",
+          "tool": "semgrep",
+          "severity": "HIGH"
+        },
+        {
+          "id": "VULN-025",
+          "tool": "semgrep",
+          "severity": "HIGH"
+        }
+      ],
+      "timestamp": "2025-12-15T15:35:57.125Z",
+      "confirmed": false,
+      "_fingerprint": "f9da2dac9400fc28",
+      "_fingerprintSource": "cwe:CWE-79||cat:A03||loc:file:/home/nillof/Exjobb/GPT2/mini-social/public/app.js|line:805||vuln:code:div.innerhtml = ` <strong>${u.displayname}</strong><br> ${u.city || } ${u.countr||title:dom xss"
+    },
+    {
+      "id": "VULN-023",
+      "category": "A03",
+      "cwe": "CWE-79",
+      "cweName": "Cross-site Scripting (XSS)",
+      "severity": "HIGH",
+      "title": "dom-xss-innerhtml",
+      "description": "innerHTML XSS. CWE-79",
+      "evidence": {
+        "file": "/home/nillof/Exjobb/GPT2/mini-social/public/app.js",
+        "line": 1158,
+        "endLine": 1168,
+        "code": "div.innerHTML = `\n      <strong>${u.displayName}</strong><br>\n      Email: ${u.email}<br>\n      Admin: ${u.isAdmin ? \"Yes\" : \"No\"} · Owner: ${u.isOwner ? \"Yes\" : \"No\"}<br><br>\n\n      <button data-admin-edit=\"${doc.id}\">Edit User</button>\n      <button data-admin-toggle=\"${doc.id}\">\n        ${u.isAdmin ? \"Remove Admin\" : \"Make Admin\"}\n      </button>\n      <button data-admin-deleteuser=\"${doc.id}\" class=\"danger\">Delete User</button>\n    `;"
+      },
+      "remediation": null,
+      "tool": "semgrep",
+      "timestamp": "2025-12-15T15:35:57.125Z",
+      "tools": [
+        "semgrep"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "04e5f29dbb316243",
+      "_fingerprintSource": "cwe:CWE-79||cat:A03||loc:file:/home/nillof/Exjobb/GPT2/mini-social/public/app.js|line:1158||vuln:code:div.innerhtml = ` <strong>${u.displayname}</strong><br> email: ${u.email}<br> ad||title:dom xss"
+    },
+    {
+      "id": "VULN-024",
+      "category": "A03",
+      "cwe": "CWE-79",
+      "cweName": "Cross-site Scripting (XSS)",
+      "severity": "HIGH",
+      "title": "dom-xss-innerhtml",
+      "description": "innerHTML XSS. CWE-79",
+      "evidence": {
+        "file": "/home/nillof/Exjobb/GPT2/mini-social/public/app.js",
+        "line": 1225,
+        "endLine": 1229,
+        "code": "div.innerHTML = `\n      <strong>${p.authorName}</strong> · ${p.visibility}<br>\n      ${p.text}<br>\n      <button data-admin-deletepost=\"${doc.id}\" class=\"danger\">Delete Post</button>\n    `;"
+      },
+      "remediation": null,
+      "tool": "semgrep",
+      "timestamp": "2025-12-15T15:35:57.126Z",
+      "tools": [
+        "semgrep"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "6537c037c16b1604",
+      "_fingerprintSource": "cwe:CWE-79||cat:A03||loc:file:/home/nillof/Exjobb/GPT2/mini-social/public/app.js|line:1225||vuln:code:div.innerhtml = ` <strong>${p.authorname}</strong> · ${p.visibility}<br> ${p.tex||title:dom xss"
+    },
+    {
+      "id": "VULN-025",
+      "category": "A03",
+      "cwe": "CWE-79",
+      "cweName": "Cross-site Scripting (XSS)",
+      "severity": "HIGH",
+      "title": "dom-xss-innerhtml",
+      "description": "innerHTML XSS. CWE-79",
+      "evidence": {
+        "file": "/home/nillof/Exjobb/GPT2/mini-social/public/app.js",
+        "line": 1263,
+        "endLine": 1313,
+        "code": "editBody.innerHTML = `\n    <label>Display Name:\n      <input id=\"admin-edit-displayName\" value=\"${u.displayName || \"\"}\">\n    </label>\n\n    <label>Full Name:\n      <input id=\"admin-edit-fullName\" value=\"${u.fullName || \"\"}\">\n    </label>\n\n    <label>Age:\n      <input id=\"admin-edit-age\" type=\"number\" value=\"${u.age || \"\"}\">\n    </label>\n\n    <label>City:\n      <input id=\"admin-edit-city\" value=\"${u.city || \"\"}\">\n    </label>\n\n    <label>Country:\n      <input id=\"admin-edit-country\" value=\"${u.country || \"\"}\">\n    </label>\n\n    <label>About:\n      <textarea id=\"admin-edit-about\">${u.about || \"\"}</textarea>\n    </label>\n\n    <label>Banner:\n      <select id=\"admin-edit-banner\">\n        <option value=\"banner-default\" ${u.banner === \"banner-default\" ? \"selected\" : \"\"}>Default</option>\n        <option value=\"banner-blue\" ${u.banner === \"banner-blue\" ? \"selected\" : \"\"}>Blue</option>\n        <option value=\"banner-green\" ${u.banner === \"banner-green\" ? \"selected\" : \"\"}>Green</option>\n        <option value=\"banner-pink\" ${u.banner === \"banner-pink\" ? \"selected\" : \"\"}>Pink</option>\n      </select>\n    </label>\n\n    <label>Theme:\n      <select id=\"admin-edit-theme\">\n        <option value=\"light\" ${u.theme === \"light\" ? \"selected\" : \"\"}>Light</option>\n        <option value=\"dark\" ${u.theme === \"dark\" ? \"selected\" : \"\"}>Dark</option>\n        <option value=\"blue\" ${u.theme === \"blue\" ? \"selected\" : \"\"}>Blue</option>\n      </select>\n    </label>\n\n    <label>Referral Points:\n      <input id=\"admin-edit-refpoints\" type=\"number\" value=\"${u.referralPoints || 0}\">\n    </label>\n\n    <label>\n      <input type=\"checkbox\" id=\"admin-edit-reset-photo\">\n      Reset profile photo\n    </label>\n  `;"
+      },
+      "remediation": null,
+      "tool": "semgrep",
+      "timestamp": "2025-12-15T15:35:57.126Z",
+      "tools": [
+        "semgrep"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "5e650e8ec5f4460e",
+      "_fingerprintSource": "cwe:CWE-79||cat:A03||loc:file:/home/nillof/Exjobb/GPT2/mini-social/public/app.js|line:1263||vuln:code:editbody.innerhtml = ` <label>display name: <input id=admin-edit-displayname val||title:dom xss"
+    },
+    {
+      "id": "VULN-026",
+      "category": "A02",
+      "cwe": "CWE-311",
+      "cweName": "Missing Encryption of Sensitive Data",
+      "severity": "MEDIUM",
+      "title": "Public Storage Access",
+      "description": "Storage files are publicly readable. Consider if this is necessary.",
+      "evidence": {
+        "rule": "allow read: if true"
+      },
+      "remediation": "Consider: allow read: if request.auth != null",
+      "tool": "static-analysis",
+      "timestamp": "2025-12-15T15:35:46.065Z",
+      "tools": [
+        "static-analysis"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "e49ef171d02d0e12",
+      "_fingerprintSource": "cwe:CWE-311||cat:A02||loc:rule:allow read: if true||vuln:rule:allow read: if true||title:public storage access"
+    },
+    {
+      "id": "VULN-027",
+      "category": "A02",
+      "cwe": "CWE-330",
+      "cweName": "Use of Insufficiently Random Values",
+      "severity": "MEDIUM",
+      "title": "Weak Random detected",
+      "description": "Found Weak Random in https://gpt-2-22b6d.firebaseapp.com/app.js. This may indicate weak cryptographic practices.",
+      "evidence": {
+        "pattern": "Weak Random",
+        "source": "https://gpt-2-22b6d.firebaseapp.com/app.js",
+        "matchCount": 1
+      },
+      "remediation": null,
+      "tool": "crypto-scanner",
+      "timestamp": "2025-12-15T15:36:58.806Z",
+      "tools": [
+        "crypto-scanner"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "c9c51dcd58f3ba92",
+      "_fingerprintSource": "cwe:CWE-330||cat:A02||title:weak random detected"
+    },
+    {
+      "id": "VULN-028",
+      "category": "A02",
+      "cwe": "CWE-338",
+      "cweName": "Use of Cryptographically Weak PRNG",
+      "severity": "MEDIUM",
+      "title": "weak-prng-math-floor-random",
+      "description": "Math.random for random int. CWE-338",
+      "evidence": {
+        "file": "/home/nillof/Exjobb/GPT2/mini-social/public/app.js",
+        "line": 53,
+        "endLine": 53,
+        "code": "out += chars[Math.floor(Math.random() * chars.length)];"
+      },
+      "remediation": null,
+      "tool": "semgrep",
+      "timestamp": "2025-12-15T15:35:57.124Z",
+      "tools": [
+        "semgrep"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "60a6980fd7b24b39",
+      "_fingerprintSource": "cwe:CWE-338||cat:A02||loc:file:/home/nillof/Exjobb/GPT2/mini-social/public/app.js|line:53||vuln:code:out += chars[math.floor(math.random() * chars.length)];||title:weak-prng-math-floor-random"
+    },
+    {
+      "id": "VULN-029",
+      "category": "A02",
+      "cwe": "CWE-521",
+      "cweName": "Weak Password Requirements",
+      "severity": "MEDIUM",
+      "title": "Weak password policy",
+      "description": "Password field \"register-password\" has weak policy: no minimum length requirement (should be ≥8), no pattern for password complexity",
+      "evidence": null,
+      "remediation": null,
+      "tool": "crypto-scanner",
+      "tools": [
+        "crypto-scanner"
+      ],
+      "duplicateCount": 2,
+      "mergedFrom": [
+        {
+          "id": "VULN-035",
+          "tool": "crypto-scanner",
+          "severity": "MEDIUM"
+        },
+        {
+          "id": "VULN-036",
+          "tool": "crypto-scanner",
+          "severity": "MEDIUM"
+        }
+      ],
+      "timestamp": "2025-12-15T15:36:58.806Z",
+      "confirmed": false,
+      "_fingerprint": "f17a2819353daa70",
+      "_fingerprintSource": "cwe:CWE-521||cat:A02||title:weak password policy"
+    },
+    {
+      "id": "VULN-030",
+      "category": "A03",
+      "cwe": "CWE-434",
+      "cweName": "Unrestricted Upload of File with Dangerous Type",
+      "severity": "MEDIUM",
+      "title": "Missing File Type Validation in Storage Rules",
+      "description": "Storage rules do not validate file content type",
+      "evidence": null,
+      "remediation": "Add: && request.resource.contentType.matches('image/.*')",
+      "tool": "static-analysis",
+      "timestamp": "2025-12-15T15:35:46.065Z",
+      "tools": [
+        "static-analysis"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "7a89ddfe7772272a",
+      "_fingerprintSource": "cwe:CWE-434||cat:A03||title:missing file type validation in storage rules"
+    }
+  ],
+  "cweCoverage": {
+    "A01_BrokenAccessControl": [
+      "CWE-22",
+      "CWE-23",
+      "CWE-200",
+      "CWE-201",
+      "CWE-219",
+      "CWE-264",
+      "CWE-275",
+      "CWE-276",
+      "CWE-284",
+      "CWE-285",
+      "CWE-352",
+      "CWE-359",
+      "CWE-425",
+      "CWE-441",
+      "CWE-497",
+      "CWE-538",
+      "CWE-540",
+      "CWE-548",
+      "CWE-552",
+      "CWE-566",
+      "CWE-601",
+      "CWE-639",
+      "CWE-651",
+      "CWE-668",
+      "CWE-706",
+      "CWE-862",
+      "CWE-863",
+      "CWE-913",
+      "CWE-922",
+      "CWE-1275"
+    ],
+    "A02_CryptographicFailures": [
+      "CWE-261",
+      "CWE-296",
+      "CWE-310",
+      "CWE-319",
+      "CWE-321",
+      "CWE-322",
+      "CWE-323",
+      "CWE-324",
+      "CWE-325",
+      "CWE-326",
+      "CWE-327",
+      "CWE-328",
+      "CWE-329",
+      "CWE-330",
+      "CWE-331",
+      "CWE-335",
+      "CWE-336",
+      "CWE-337",
+      "CWE-338",
+      "CWE-340",
+      "CWE-347",
+      "CWE-523",
+      "CWE-757",
+      "CWE-759",
+      "CWE-760",
+      "CWE-780",
+      "CWE-818",
+      "CWE-916"
+    ],
+    "A03_Injection": [
+      "CWE-20",
+      "CWE-74",
+      "CWE-75",
+      "CWE-77",
+      "CWE-78",
+      "CWE-79",
+      "CWE-80",
+      "CWE-83",
+      "CWE-87",
+      "CWE-88",
+      "CWE-89",
+      "CWE-90",
+      "CWE-91",
+      "CWE-93",
+      "CWE-94",
+      "CWE-95",
+      "CWE-96",
+      "CWE-97",
+      "CWE-98",
+      "CWE-99",
+      "CWE-113",
+      "CWE-116",
+      "CWE-138",
+      "CWE-184",
+      "CWE-470",
+      "CWE-471",
+      "CWE-564",
+      "CWE-610",
+      "CWE-643",
+      "CWE-644",
+      "CWE-652",
+      "CWE-917",
+      "CWE-943"
+    ]
+  }
+}

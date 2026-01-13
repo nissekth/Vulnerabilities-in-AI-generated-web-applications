@@ -1,0 +1,653 @@
+{
+  "metadata": {
+    "scanDate": "2025-12-16T00:41:52.297Z",
+    "duration": "109s",
+    "target": "https://claude3-a5800.firebaseapp.com",
+    "appName": "Social Media App",
+    "projectId": "claude3-a5800",
+    "scope": "OWASP Top 10:2021 A01-A03"
+  },
+  "summary": {
+    "total": 21,
+    "bySeverity": {
+      "CRITICAL": 0,
+      "HIGH": 2,
+      "MEDIUM": 17,
+      "LOW": 2,
+      "INFO": 0
+    },
+    "byCategory": {
+      "A01": 13,
+      "A02": 3,
+      "A03": 5
+    },
+    "byTool": {
+      "firebase-emulator": 1,
+      "crypto-scanner": 3,
+      "semgrep": 17
+    },
+    "riskScore": 46,
+    "riskLevel": "CRITICAL",
+    "deduplication": {
+      "originalCount": 23,
+      "deduplicatedCount": 21,
+      "duplicatesRemoved": 2,
+      "reductionPercent": 9
+    }
+  },
+  "findings": [
+    {
+      "id": "VULN-001",
+      "category": "A01",
+      "cwe": "CWE-639",
+      "cweName": "IDOR",
+      "severity": "HIGH",
+      "title": "IDOR Vulnerability on User Profiles",
+      "description": "Users can access other users' profiles by simply changing the document ID in the request.",
+      "evidence": "alice123 accessed bob456's profile by changing document ID",
+      "remediation": "Restrict reads to own profile: allow read: if request.auth.uid == userId",
+      "tool": "firebase-emulator",
+      "timestamp": "2025-12-16T00:40:09.976Z",
+      "tools": [
+        "firebase-emulator"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "8116391c3befc481",
+      "_fingerprintSource": "cwe:CWE-639||cat:A01||title:idor vulnerability on user profiles"
+    },
+    {
+      "id": "VULN-002",
+      "category": "A02",
+      "cwe": "CWE-798",
+      "cweName": "Unknown",
+      "severity": "HIGH",
+      "title": "Hardcoded Generic Password found",
+      "description": "Found potential Generic Password in https://claude3-a5800.firebaseapp.com/assets/index--yz7OXt5.js",
+      "evidence": null,
+      "remediation": null,
+      "tool": "crypto-scanner",
+      "tools": [
+        "crypto-scanner"
+      ],
+      "duplicateCount": 2,
+      "mergedFrom": [
+        {
+          "id": "VULN-019",
+          "tool": "crypto-scanner",
+          "severity": "HIGH"
+        },
+        {
+          "id": "VULN-020",
+          "tool": "crypto-scanner",
+          "severity": "HIGH"
+        }
+      ],
+      "timestamp": "2025-12-16T00:41:24.502Z",
+      "confirmed": false,
+      "_fingerprint": "8fac7ab7f44109dd",
+      "_fingerprintSource": "cwe:CWE-798||cat:A02||title:hardcoded generic password found"
+    },
+    {
+      "id": "VULN-003",
+      "category": "A01",
+      "cwe": "CWE-284",
+      "cweName": "Improper Access Control",
+      "severity": "MEDIUM",
+      "title": "firebase-no-auth-deletedoc",
+      "description": "Firestore deleteDoc without auth check. CWE-284",
+      "evidence": {
+        "file": "/home/nillof/Exjobb/Claude3/social-network/src/pages/AdminPanel.jsx",
+        "line": 50,
+        "endLine": 50,
+        "code": "await deleteDoc(doc(db, 'posts', postId));"
+      },
+      "remediation": null,
+      "tool": "semgrep",
+      "timestamp": "2025-12-16T00:40:13.430Z",
+      "tools": [
+        "semgrep"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "23634b86c1ea466f",
+      "_fingerprintSource": "cwe:CWE-284||cat:A01||loc:file:/home/nillof/Exjobb/Claude3/social-network/src/pages/AdminPanel.jsx|line:50||vuln:code:await deletedoc(doc(db, posts, postid));||title:firebase-no-auth-deletedoc"
+    },
+    {
+      "id": "VULN-004",
+      "category": "A01",
+      "cwe": "CWE-284",
+      "cweName": "Improper Access Control",
+      "severity": "MEDIUM",
+      "title": "firebase-no-auth-deletedoc",
+      "description": "Firestore deleteDoc without auth check. CWE-284",
+      "evidence": {
+        "file": "/home/nillof/Exjobb/Claude3/social-network/src/pages/AdminPanel.jsx",
+        "line": 60,
+        "endLine": 60,
+        "code": "await deleteDoc(doc(db, 'comments', commentId));"
+      },
+      "remediation": null,
+      "tool": "semgrep",
+      "timestamp": "2025-12-16T00:40:13.430Z",
+      "tools": [
+        "semgrep"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "08f8be4c7dda14d2",
+      "_fingerprintSource": "cwe:CWE-284||cat:A01||loc:file:/home/nillof/Exjobb/Claude3/social-network/src/pages/AdminPanel.jsx|line:60||vuln:code:await deletedoc(doc(db, comments, commentid));||title:firebase-no-auth-deletedoc"
+    },
+    {
+      "id": "VULN-005",
+      "category": "A01",
+      "cwe": "CWE-284",
+      "cweName": "Improper Access Control",
+      "severity": "MEDIUM",
+      "title": "firebase-no-auth-setdoc",
+      "description": "Firestore setDoc without auth check. CWE-284",
+      "evidence": {
+        "file": "/home/nillof/Exjobb/Claude3/social-network/src/pages/Register.jsx",
+        "line": 35,
+        "endLine": 49,
+        "code": "await setDoc(doc(db, 'users', userCredential.user.uid), {\n        email: formData.email,\n        displayName: formData.displayName,\n        age: formData.age ? parseInt(formData.age) : null,\n        city: formData.city || '',\n        country: formData.country || '',\n        aboutMe: '',\n        photoURL: '',\n        bannerTheme: 'default',\n        createdAt: new Date().toISOString(),\n        role: 'user',\n        theme: 'default',\n        referralPoints: 0,\n        referralOptIn: true\n      });"
+      },
+      "remediation": null,
+      "tool": "semgrep",
+      "timestamp": "2025-12-16T00:40:13.430Z",
+      "tools": [
+        "semgrep"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "384e88ca47ef466a",
+      "_fingerprintSource": "cwe:CWE-284||cat:A01||loc:file:/home/nillof/Exjobb/Claude3/social-network/src/pages/Register.jsx|line:35||vuln:code:await setdoc(doc(db, users, usercredential.user.uid), { email: formdata.email, d||title:firebase-no-auth-setdoc"
+    },
+    {
+      "id": "VULN-006",
+      "category": "A01",
+      "cwe": "CWE-284",
+      "cweName": "Improper Access Control",
+      "severity": "MEDIUM",
+      "title": "firebase-no-auth-setdoc",
+      "description": "Firestore setDoc without auth check. CWE-284",
+      "evidence": {
+        "file": "/home/nillof/Exjobb/Claude3/social-network/src/pages/Register.jsx",
+        "line": 50,
+        "endLine": 54,
+        "code": "await setDoc(doc(db, 'friends', userCredential.user.uid), {\n        friendIds: [],\n        pendingRequests: [],\n        sentRequests: []\n      });"
+      },
+      "remediation": null,
+      "tool": "semgrep",
+      "timestamp": "2025-12-16T00:40:13.430Z",
+      "tools": [
+        "semgrep"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "415acf3740454918",
+      "_fingerprintSource": "cwe:CWE-284||cat:A01||loc:file:/home/nillof/Exjobb/Claude3/social-network/src/pages/Register.jsx|line:50||vuln:code:await setdoc(doc(db, friends, usercredential.user.uid), { friendids: [], pending||title:firebase-no-auth-setdoc"
+    },
+    {
+      "id": "VULN-007",
+      "category": "A01",
+      "cwe": "CWE-284",
+      "cweName": "Improper Access Control",
+      "severity": "MEDIUM",
+      "title": "firebase-no-auth-setdoc",
+      "description": "Firestore setDoc without auth check. CWE-284",
+      "evidence": {
+        "file": "/home/nillof/Exjobb/Claude3/social-network/src/pages/Register.jsx",
+        "line": 55,
+        "endLine": 61,
+        "code": "await setDoc(doc(db, 'referrals', userCredential.user.uid), {\n        inviteCode: generateInviteCode(),\n        usedInvites: 0,\n        monthlyInvites: 5,\n        lastResetDate: new Date().toISOString(),\n        referredUsers: []\n      });"
+      },
+      "remediation": null,
+      "tool": "semgrep",
+      "timestamp": "2025-12-16T00:40:13.430Z",
+      "tools": [
+        "semgrep"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "5aae05fdda7b6868",
+      "_fingerprintSource": "cwe:CWE-284||cat:A01||loc:file:/home/nillof/Exjobb/Claude3/social-network/src/pages/Register.jsx|line:55||vuln:code:await setdoc(doc(db, referrals, usercredential.user.uid), { invitecode: generate||title:firebase-no-auth-setdoc"
+    },
+    {
+      "id": "VULN-008",
+      "category": "A01",
+      "cwe": "CWE-284",
+      "cweName": "Improper Access Control",
+      "severity": "MEDIUM",
+      "title": "firebase-no-auth-deletedoc",
+      "description": "Firestore deleteDoc without auth check. CWE-284",
+      "evidence": {
+        "file": "/home/nillof/Exjobb/Claude3/social-network/src/pages/Settings.jsx",
+        "line": 59,
+        "endLine": 59,
+        "code": "await deleteDoc(doc(db, 'users', currentUser.uid));"
+      },
+      "remediation": null,
+      "tool": "semgrep",
+      "timestamp": "2025-12-16T00:40:13.430Z",
+      "tools": [
+        "semgrep"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "6e39169292789d0a",
+      "_fingerprintSource": "cwe:CWE-284||cat:A01||loc:file:/home/nillof/Exjobb/Claude3/social-network/src/pages/Settings.jsx|line:59||vuln:code:await deletedoc(doc(db, users, currentuser.uid));||title:firebase-no-auth-deletedoc"
+    },
+    {
+      "id": "VULN-009",
+      "category": "A01",
+      "cwe": "CWE-284",
+      "cweName": "Improper Access Control",
+      "severity": "MEDIUM",
+      "title": "firebase-no-auth-deletedoc",
+      "description": "Firestore deleteDoc without auth check. CWE-284",
+      "evidence": {
+        "file": "/home/nillof/Exjobb/Claude3/social-network/src/pages/Settings.jsx",
+        "line": 60,
+        "endLine": 60,
+        "code": "await deleteDoc(doc(db, 'friends', currentUser.uid));"
+      },
+      "remediation": null,
+      "tool": "semgrep",
+      "timestamp": "2025-12-16T00:40:13.430Z",
+      "tools": [
+        "semgrep"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "2998c5bd3b51b503",
+      "_fingerprintSource": "cwe:CWE-284||cat:A01||loc:file:/home/nillof/Exjobb/Claude3/social-network/src/pages/Settings.jsx|line:60||vuln:code:await deletedoc(doc(db, friends, currentuser.uid));||title:firebase-no-auth-deletedoc"
+    },
+    {
+      "id": "VULN-010",
+      "category": "A01",
+      "cwe": "CWE-284",
+      "cweName": "Improper Access Control",
+      "severity": "MEDIUM",
+      "title": "firebase-no-auth-deletedoc",
+      "description": "Firestore deleteDoc without auth check. CWE-284",
+      "evidence": {
+        "file": "/home/nillof/Exjobb/Claude3/social-network/src/pages/Settings.jsx",
+        "line": 61,
+        "endLine": 61,
+        "code": "await deleteDoc(doc(db, 'referrals', currentUser.uid));"
+      },
+      "remediation": null,
+      "tool": "semgrep",
+      "timestamp": "2025-12-16T00:40:13.430Z",
+      "tools": [
+        "semgrep"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "b3d900e79e47f6d3",
+      "_fingerprintSource": "cwe:CWE-284||cat:A01||loc:file:/home/nillof/Exjobb/Claude3/social-network/src/pages/Settings.jsx|line:61||vuln:code:await deletedoc(doc(db, referrals, currentuser.uid));||title:firebase-no-auth-deletedoc"
+    },
+    {
+      "id": "VULN-011",
+      "category": "A01",
+      "cwe": "CWE-285",
+      "cweName": "Improper Authorization",
+      "severity": "MEDIUM",
+      "title": "improper-auth-admin-string",
+      "description": "Client-side admin role check. CWE-285",
+      "evidence": {
+        "file": "/home/nillof/Exjobb/Claude3/social-network/src/AuthContext.jsx",
+        "line": 88,
+        "endLine": 88,
+        "code": "isAdmin: userProfile?.role === 'admin',"
+      },
+      "remediation": null,
+      "tool": "semgrep",
+      "timestamp": "2025-12-16T00:40:13.430Z",
+      "tools": [
+        "semgrep"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "c838d0ee740bf786",
+      "_fingerprintSource": "cwe:CWE-285||cat:A01||loc:file:/home/nillof/Exjobb/Claude3/social-network/src/AuthContext.jsx|line:88||vuln:code:isadmin: userprofile?.role === admin,||title:improper-auth-admin-string"
+    },
+    {
+      "id": "VULN-012",
+      "category": "A01",
+      "cwe": "CWE-285",
+      "cweName": "Improper Authorization",
+      "severity": "MEDIUM",
+      "title": "improper-auth-admin-string",
+      "description": "Client-side admin role check. CWE-285",
+      "evidence": {
+        "file": "/home/nillof/Exjobb/Claude3/social-network/src/pages/AdminLogin.jsx",
+        "line": 22,
+        "endLine": 22,
+        "code": "if (userData.role === 'admin' || userData.role === 'owner') {"
+      },
+      "remediation": null,
+      "tool": "semgrep",
+      "timestamp": "2025-12-16T00:40:13.430Z",
+      "tools": [
+        "semgrep"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "34b0d1fe7c4c0de2",
+      "_fingerprintSource": "cwe:CWE-285||cat:A01||loc:file:/home/nillof/Exjobb/Claude3/social-network/src/pages/AdminLogin.jsx|line:22||vuln:code:if (userdata.role === admin || userdata.role === owner) {||title:improper-auth-admin-string"
+    },
+    {
+      "id": "VULN-013",
+      "category": "A01",
+      "cwe": "CWE-285",
+      "cweName": "Improper Authorization",
+      "severity": "MEDIUM",
+      "title": "improper-auth-admin-string",
+      "description": "Client-side admin role check. CWE-285",
+      "evidence": {
+        "file": "/home/nillof/Exjobb/Claude3/social-network/src/pages/AdminPanel.jsx",
+        "line": 117,
+        "endLine": 117,
+        "code": "<span style={{padding:'0.25rem 0.75rem',background:user.role === 'owner' ? '#f59e0b' : user.role === 'admin' ? '#3b82f6' : 'var(--bg-secondary)',borderRadius:'var(--radius-sm)',fontSize:'0.85rem'}}>"
+      },
+      "remediation": null,
+      "tool": "semgrep",
+      "timestamp": "2025-12-16T00:40:13.430Z",
+      "tools": [
+        "semgrep"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "c22140857f8fc73a",
+      "_fingerprintSource": "cwe:CWE-285||cat:A01||loc:file:/home/nillof/Exjobb/Claude3/social-network/src/pages/AdminPanel.jsx|line:117||vuln:code:<span style={{padding:0.25rem 0.75rem,background:user.role === owner ? #f59e0b :||title:improper-auth-admin-string"
+    },
+    {
+      "id": "VULN-014",
+      "category": "A01",
+      "cwe": "CWE-285",
+      "cweName": "Improper Authorization",
+      "severity": "MEDIUM",
+      "title": "improper-auth-admin-string",
+      "description": "Client-side admin role check. CWE-285",
+      "evidence": {
+        "file": "/home/nillof/Exjobb/Claude3/social-network/src/pages/Home.jsx",
+        "line": 131,
+        "endLine": 131,
+        "code": "if (userProfile?.role === 'admin' || userProfile?.role === 'owner') return true;"
+      },
+      "remediation": null,
+      "tool": "semgrep",
+      "timestamp": "2025-12-16T00:40:13.430Z",
+      "tools": [
+        "semgrep"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "38325407581969b3",
+      "_fingerprintSource": "cwe:CWE-285||cat:A01||loc:file:/home/nillof/Exjobb/Claude3/social-network/src/pages/Home.jsx|line:131||vuln:code:if (userprofile?.role === admin || userprofile?.role === owner) return true;||title:improper-auth-admin-string"
+    },
+    {
+      "id": "VULN-015",
+      "category": "A02",
+      "cwe": "CWE-330",
+      "cweName": "Use of Insufficiently Random Values",
+      "severity": "MEDIUM",
+      "title": "Weak Random detected",
+      "description": "Found Weak Random in https://claude3-a5800.firebaseapp.com/assets/index--yz7OXt5.js. This may indicate weak cryptographic practices.",
+      "evidence": {
+        "pattern": "Weak Random",
+        "source": "https://claude3-a5800.firebaseapp.com/assets/index--yz7OXt5.js",
+        "matchCount": 14
+      },
+      "remediation": null,
+      "tool": "crypto-scanner",
+      "timestamp": "2025-12-16T00:41:24.502Z",
+      "tools": [
+        "crypto-scanner"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "c9c51dcd58f3ba92",
+      "_fingerprintSource": "cwe:CWE-330||cat:A02||title:weak random detected"
+    },
+    {
+      "id": "VULN-016",
+      "category": "A02",
+      "cwe": "CWE-798",
+      "cweName": "Unknown",
+      "severity": "MEDIUM",
+      "title": "Hardcoded Generic Token found",
+      "description": "Found potential Generic Token in https://claude3-a5800.firebaseapp.com/assets/index--yz7OXt5.js",
+      "evidence": null,
+      "remediation": null,
+      "tool": "crypto-scanner",
+      "tools": [
+        "crypto-scanner"
+      ],
+      "duplicateCount": 2,
+      "mergedFrom": [
+        {
+          "id": "VULN-021",
+          "tool": "crypto-scanner",
+          "severity": "MEDIUM"
+        },
+        {
+          "id": "VULN-022",
+          "tool": "crypto-scanner",
+          "severity": "MEDIUM"
+        }
+      ],
+      "timestamp": "2025-12-16T00:41:24.502Z",
+      "confirmed": false,
+      "_fingerprint": "e253f430bf54dd1c",
+      "_fingerprintSource": "cwe:CWE-798||cat:A02||title:hardcoded generic token found"
+    },
+    {
+      "id": "VULN-017",
+      "category": "A03",
+      "cwe": "CWE-79",
+      "cweName": "Cross-site Scripting (XSS)",
+      "severity": "MEDIUM",
+      "title": "firebase-stored-xss",
+      "description": "User content stored. CWE-79",
+      "evidence": {
+        "file": "/home/nillof/Exjobb/Claude3/social-network/src/pages/Home.jsx",
+        "line": 79,
+        "endLine": 86,
+        "code": "await addDoc(collection(db, 'posts'), {\n        userId: currentUser.uid,\n        content: newPost,\n        imageUrl,\n        visibility,\n        likes: [],\n        createdAt: new Date().toISOString()\n      });"
+      },
+      "remediation": null,
+      "tool": "semgrep",
+      "timestamp": "2025-12-16T00:40:13.430Z",
+      "tools": [
+        "semgrep"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "be2156eaeee4ca6d",
+      "_fingerprintSource": "cwe:CWE-79||cat:A03||loc:file:/home/nillof/Exjobb/Claude3/social-network/src/pages/Home.jsx|line:79||vuln:code:await adddoc(collection(db, posts), { userid: currentuser.uid, content: newpost,||title:stored xss"
+    },
+    {
+      "id": "VULN-018",
+      "category": "A03",
+      "cwe": "CWE-79",
+      "cweName": "Cross-site Scripting (XSS)",
+      "severity": "MEDIUM",
+      "title": "firebase-stored-xss",
+      "description": "User content stored. CWE-79",
+      "evidence": {
+        "file": "/home/nillof/Exjobb/Claude3/social-network/src/pages/Home.jsx",
+        "line": 115,
+        "endLine": 120,
+        "code": "await addDoc(collection(db, 'comments'), {\n        postId,\n        userId: currentUser.uid,\n        content: commentText,\n        createdAt: new Date().toISOString()\n      });"
+      },
+      "remediation": null,
+      "tool": "semgrep",
+      "timestamp": "2025-12-16T00:40:13.430Z",
+      "tools": [
+        "semgrep"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "a285da5f7210c86a",
+      "_fingerprintSource": "cwe:CWE-79||cat:A03||loc:file:/home/nillof/Exjobb/Claude3/social-network/src/pages/Home.jsx|line:115||vuln:code:await adddoc(collection(db, comments), { postid, userid: currentuser.uid, conten||title:stored xss"
+    },
+    {
+      "id": "VULN-019",
+      "category": "A03",
+      "cwe": "CWE-79",
+      "cweName": "Cross-site Scripting (XSS)",
+      "severity": "MEDIUM",
+      "title": "firebase-stored-xss",
+      "description": "User content stored. CWE-79",
+      "evidence": {
+        "file": "/home/nillof/Exjobb/Claude3/social-network/src/pages/Messages.jsx",
+        "line": 60,
+        "endLine": 65,
+        "code": "await addDoc(collection(db, 'messages'), {\n        senderId: currentUser.uid,\n        receiverId: selectedFriend.id,\n        content: newMessage,\n        createdAt: new Date().toISOString()\n      });"
+      },
+      "remediation": null,
+      "tool": "semgrep",
+      "timestamp": "2025-12-16T00:40:13.430Z",
+      "tools": [
+        "semgrep"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "aac953fa7e5bc511",
+      "_fingerprintSource": "cwe:CWE-79||cat:A03||loc:file:/home/nillof/Exjobb/Claude3/social-network/src/pages/Messages.jsx|line:60||vuln:code:await adddoc(collection(db, messages), { senderid: currentuser.uid, receiverid: ||title:stored xss"
+    },
+    {
+      "id": "VULN-020",
+      "category": "A03",
+      "cwe": "CWE-434",
+      "cweName": "Unrestricted Upload of File with Dangerous Type",
+      "severity": "LOW",
+      "title": "firebase-upload",
+      "description": "File upload. CWE-434",
+      "evidence": {
+        "file": "/home/nillof/Exjobb/Claude3/social-network/src/pages/Home.jsx",
+        "line": 76,
+        "endLine": 76,
+        "code": "await uploadBytes(imageRef, postImage);"
+      },
+      "remediation": null,
+      "tool": "semgrep",
+      "timestamp": "2025-12-16T00:40:13.430Z",
+      "tools": [
+        "semgrep"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "a570d4ca4f11ecee",
+      "_fingerprintSource": "cwe:CWE-434||cat:A03||loc:file:/home/nillof/Exjobb/Claude3/social-network/src/pages/Home.jsx|line:76||vuln:code:await uploadbytes(imageref, postimage);||title:firebase-upload"
+    },
+    {
+      "id": "VULN-021",
+      "category": "A03",
+      "cwe": "CWE-434",
+      "cweName": "Unrestricted Upload of File with Dangerous Type",
+      "severity": "LOW",
+      "title": "firebase-upload",
+      "description": "File upload. CWE-434",
+      "evidence": {
+        "file": "/home/nillof/Exjobb/Claude3/social-network/src/pages/Profile.jsx",
+        "line": 94,
+        "endLine": 94,
+        "code": "await uploadBytes(imageRef, file);"
+      },
+      "remediation": null,
+      "tool": "semgrep",
+      "timestamp": "2025-12-16T00:40:13.430Z",
+      "tools": [
+        "semgrep"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "dfd1722c03ee59b5",
+      "_fingerprintSource": "cwe:CWE-434||cat:A03||loc:file:/home/nillof/Exjobb/Claude3/social-network/src/pages/Profile.jsx|line:94||vuln:code:await uploadbytes(imageref, file);||title:firebase-upload"
+    }
+  ],
+  "cweCoverage": {
+    "A01_BrokenAccessControl": [
+      "CWE-22",
+      "CWE-23",
+      "CWE-200",
+      "CWE-201",
+      "CWE-219",
+      "CWE-264",
+      "CWE-275",
+      "CWE-276",
+      "CWE-284",
+      "CWE-285",
+      "CWE-352",
+      "CWE-359",
+      "CWE-425",
+      "CWE-441",
+      "CWE-497",
+      "CWE-538",
+      "CWE-540",
+      "CWE-548",
+      "CWE-552",
+      "CWE-566",
+      "CWE-601",
+      "CWE-639",
+      "CWE-651",
+      "CWE-668",
+      "CWE-706",
+      "CWE-862",
+      "CWE-863",
+      "CWE-913",
+      "CWE-922",
+      "CWE-1275"
+    ],
+    "A02_CryptographicFailures": [
+      "CWE-261",
+      "CWE-296",
+      "CWE-310",
+      "CWE-319",
+      "CWE-321",
+      "CWE-322",
+      "CWE-323",
+      "CWE-324",
+      "CWE-325",
+      "CWE-326",
+      "CWE-327",
+      "CWE-328",
+      "CWE-329",
+      "CWE-330",
+      "CWE-331",
+      "CWE-335",
+      "CWE-336",
+      "CWE-337",
+      "CWE-338",
+      "CWE-340",
+      "CWE-347",
+      "CWE-523",
+      "CWE-757",
+      "CWE-759",
+      "CWE-760",
+      "CWE-780",
+      "CWE-818",
+      "CWE-916"
+    ],
+    "A03_Injection": [
+      "CWE-20",
+      "CWE-74",
+      "CWE-75",
+      "CWE-77",
+      "CWE-78",
+      "CWE-79",
+      "CWE-80",
+      "CWE-83",
+      "CWE-87",
+      "CWE-88",
+      "CWE-89",
+      "CWE-90",
+      "CWE-91",
+      "CWE-93",
+      "CWE-94",
+      "CWE-95",
+      "CWE-96",
+      "CWE-97",
+      "CWE-98",
+      "CWE-99",
+      "CWE-113",
+      "CWE-116",
+      "CWE-138",
+      "CWE-184",
+      "CWE-470",
+      "CWE-471",
+      "CWE-564",
+      "CWE-610",
+      "CWE-643",
+      "CWE-644",
+      "CWE-652",
+      "CWE-917",
+      "CWE-943"
+    ]
+  }
+}

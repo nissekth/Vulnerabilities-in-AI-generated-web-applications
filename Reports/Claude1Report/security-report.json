@@ -1,0 +1,1355 @@
+{
+  "metadata": {
+    "scanDate": "2025-12-15T15:55:28.582Z",
+    "duration": "100s",
+    "target": "https://claude1-f630a.web.app",
+    "appName": "Social Media App",
+    "projectId": "claude1-f630a",
+    "scope": "OWASP Top 10:2021 A01-A03"
+  },
+  "summary": {
+    "total": 50,
+    "bySeverity": {
+      "CRITICAL": 4,
+      "HIGH": 17,
+      "MEDIUM": 27,
+      "LOW": 2,
+      "INFO": 0
+    },
+    "byCategory": {
+      "A01": 25,
+      "A02": 16,
+      "A03": 9
+    },
+    "byTool": {
+      "static-analysis": 6,
+      "firebase-emulator": 11,
+      "injection-scanner": 2,
+      "semgrep": 16,
+      "crypto-scanner": 3,
+      "sca": 12
+    },
+    "riskScore": 181,
+    "riskLevel": "CRITICAL",
+    "deduplication": {
+      "originalCount": 60,
+      "deduplicatedCount": 50,
+      "duplicatesRemoved": 10,
+      "reductionPercent": 17
+    }
+  },
+  "findings": [
+    {
+      "id": "VULN-001",
+      "category": "A01",
+      "cwe": "CWE-285",
+      "cweName": "Improper Authorization",
+      "severity": "CRITICAL",
+      "title": "Authorization Bypass - No Owner Verification",
+      "description": "Rule only checks authentication, not authorization. Any authenticated user can modify any document.",
+      "evidence": {
+        "rule": "allow update: if request.auth != null;"
+      },
+      "remediation": "Add owner check: allow update: if request.auth != null && request.auth.uid == userId",
+      "tool": "static-analysis",
+      "timestamp": "2025-12-15T15:53:48.870Z",
+      "tools": [
+        "static-analysis"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "282cb0751f9c62c5",
+      "_fingerprintSource": "cwe:CWE-285||cat:A01||loc:rule:allow update: if request.auth != null;||vuln:rule:allow update: if request.auth != null;||title:authorization bypass - no owner verification"
+    },
+    {
+      "id": "VULN-002",
+      "category": "A01",
+      "cwe": "CWE-566",
+      "cweName": "Unknown",
+      "severity": "CRITICAL",
+      "title": "Document Creation with Arbitrary ID",
+      "description": "Users can create documents with any ID, potentially overwriting or impersonating other users.",
+      "evidence": "alice123 created/overwrote document at /users/admin789",
+      "remediation": "Restrict document creation to own ID: allow create: if request.auth.uid == userId",
+      "tool": "firebase-emulator",
+      "timestamp": "2025-12-15T15:53:55.762Z",
+      "tools": [
+        "firebase-emulator"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "2ab5c24bd20dffd1",
+      "_fingerprintSource": "cwe:CWE-566||cat:A01||title:document creation with arbitrary id"
+    },
+    {
+      "id": "VULN-003",
+      "category": "A03",
+      "cwe": "CWE-94",
+      "cweName": "Code Injection",
+      "severity": "CRITICAL",
+      "title": "Template injection (Angular/Vue)",
+      "description": "Template expression \"<%= 7*7 %>\" was evaluated to \"49\". This indicates server or client-side template injection.",
+      "evidence": {
+        "expected": "49",
+        "payloads": [
+          "{{7*7}}",
+          "${7*7}",
+          "<%= 7*7 %>",
+          "#{7*7}"
+        ],
+        "payloadCount": 4,
+        "frameworks": [
+          "Angular/Vue",
+          "Template literals",
+          "EJS",
+          "Pug/Jade"
+        ]
+      },
+      "remediation": null,
+      "tool": "injection-scanner",
+      "tools": [
+        "injection-scanner"
+      ],
+      "duplicateCount": 4,
+      "mergedFrom": [
+        {
+          "id": "VULN-056",
+          "tool": "injection-scanner",
+          "severity": "CRITICAL"
+        },
+        {
+          "id": "VULN-057",
+          "tool": "injection-scanner",
+          "severity": "CRITICAL"
+        },
+        {
+          "id": "VULN-058",
+          "tool": "injection-scanner",
+          "severity": "CRITICAL"
+        },
+        {
+          "id": "VULN-059",
+          "tool": "injection-scanner",
+          "severity": "CRITICAL"
+        }
+      ],
+      "timestamp": "2025-12-15T15:55:17.176Z",
+      "confirmed": false,
+      "_fingerprint": "36c57f93cbcf6d42",
+      "_fingerprintSource": "cwe:CWE-94||cat:A03||vuln:expected:49|framework:template-injection||title:template injection"
+    },
+    {
+      "id": "VULN-004",
+      "category": "A03",
+      "cwe": "CWE-94",
+      "cweName": "Code Injection",
+      "severity": "CRITICAL",
+      "title": "Template injection (Angular sandbox escape)",
+      "description": "Template expression \"{{constructor.constructor(\"return 7*7\")()}}\" was evaluated to \"49\". This indicates server or client-side template injection.",
+      "evidence": {
+        "payload": "{{constructor.constructor(\"return 7*7\")()}}",
+        "expected": "49",
+        "framework": "Angular sandbox escape"
+      },
+      "remediation": null,
+      "tool": "injection-scanner",
+      "timestamp": "2025-12-15T15:55:17.176Z",
+      "tools": [
+        "injection-scanner"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "4592599c121db568",
+      "_fingerprintSource": "cwe:CWE-94||cat:A03||vuln:expected:49|framework:sandbox-escape||title:template injection sandbox escape"
+    },
+    {
+      "id": "VULN-005",
+      "category": "A01",
+      "cwe": "CWE-200",
+      "cweName": "Exposure of Sensitive Information",
+      "severity": "HIGH",
+      "title": "User Enumeration via Collection Listing",
+      "description": "Unauthenticated users can list/enumerate user documents, exposing user data.",
+      "evidence": "Unauthenticated list query on /users succeeded",
+      "remediation": "Prevent listing: require authentication and consider restricting list queries",
+      "tool": "firebase-emulator",
+      "timestamp": "2025-12-15T15:53:55.762Z",
+      "tools": [
+        "firebase-emulator"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "a1ba02402a01e8b1",
+      "_fingerprintSource": "cwe:CWE-200||cat:A01||title:user enumeration via collection listing"
+    },
+    {
+      "id": "VULN-006",
+      "category": "A01",
+      "cwe": "CWE-284",
+      "cweName": "Improper Access Control",
+      "severity": "HIGH",
+      "title": "Unrestricted Read Access",
+      "description": "Rule allows anyone to read data without authentication",
+      "evidence": {
+        "rule": "allow read: if true"
+      },
+      "remediation": "Change to: allow read: if request.auth != null",
+      "tool": "static-analysis",
+      "tools": [
+        "static-analysis"
+      ],
+      "duplicateCount": 2,
+      "mergedFrom": [
+        {
+          "id": "VULN-001",
+          "tool": "static-analysis",
+          "severity": "HIGH"
+        },
+        {
+          "id": "VULN-002",
+          "tool": "static-analysis",
+          "severity": "HIGH"
+        }
+      ],
+      "timestamp": "2025-12-15T15:53:48.869Z",
+      "confirmed": false,
+      "_fingerprint": "c840b8d7ff27a8ee",
+      "_fingerprintSource": "cwe:CWE-284||cat:A01||loc:rule:allow read: if true||vuln:rule:allow read: if true||title:unrestricted read access"
+    },
+    {
+      "id": "VULN-007",
+      "category": "A01",
+      "cwe": "CWE-284",
+      "cweName": "Improper Access Control",
+      "severity": "HIGH",
+      "title": "Message Injection Possible",
+      "description": "Message creation does not validate that sender is in participants list",
+      "evidence": {
+        "collection": "messages"
+      },
+      "remediation": "Add: && request.auth.uid in request.resource.data.participants && request.resource.data.senderId == request.auth.uid",
+      "tool": "static-analysis",
+      "timestamp": "2025-12-15T15:53:48.870Z",
+      "tools": [
+        "static-analysis"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "89224ff3b74f6de2",
+      "_fingerprintSource": "cwe:CWE-284||cat:A01||loc:collection:messages||title:message injection possible"
+    },
+    {
+      "id": "VULN-008",
+      "category": "A01",
+      "cwe": "CWE-284",
+      "cweName": "Improper Access Control",
+      "severity": "HIGH",
+      "title": "Unauthenticated Read Access to User Data",
+      "description": "Firestore rules allow unauthenticated users to read user documents. This exposes potentially sensitive user information to anyone.",
+      "evidence": "Unauthenticated read on /users/{userId} succeeded",
+      "remediation": "Add authentication check: allow read: if request.auth != null",
+      "tool": "firebase-emulator",
+      "timestamp": "2025-12-15T15:53:55.762Z",
+      "tools": [
+        "firebase-emulator"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "cc5cee82832a3308",
+      "_fingerprintSource": "cwe:CWE-284||cat:A01||title:unauthenticated read access to user data"
+    },
+    {
+      "id": "VULN-009",
+      "category": "A01",
+      "cwe": "CWE-639",
+      "cweName": "IDOR",
+      "severity": "HIGH",
+      "title": "IDOR Vulnerability on User Profiles",
+      "description": "Users can access other users' profiles by simply changing the document ID in the request.",
+      "evidence": "alice123 accessed bob456's profile by changing document ID",
+      "remediation": "Restrict reads to own profile: allow read: if request.auth.uid == userId",
+      "tool": "firebase-emulator",
+      "timestamp": "2025-12-15T15:53:55.762Z",
+      "tools": [
+        "firebase-emulator"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "8116391c3befc481",
+      "_fingerprintSource": "cwe:CWE-639||cat:A01||title:idor vulnerability on user profiles"
+    },
+    {
+      "id": "VULN-010",
+      "category": "A01",
+      "cwe": "CWE-862",
+      "cweName": "Missing Authorization",
+      "severity": "HIGH",
+      "title": "Missing Creator Validation",
+      "description": "Create operation only requires authentication. Should validate resource data matches authenticated user.",
+      "evidence": {
+        "rule": "allow create: if request.auth != null;"
+      },
+      "remediation": "Add: && request.resource.data.userId == request.auth.uid",
+      "tool": "static-analysis",
+      "tools": [
+        "static-analysis"
+      ],
+      "duplicateCount": 3,
+      "mergedFrom": [
+        {
+          "id": "VULN-004",
+          "tool": "static-analysis",
+          "severity": "HIGH"
+        },
+        {
+          "id": "VULN-005",
+          "tool": "static-analysis",
+          "severity": "HIGH"
+        },
+        {
+          "id": "VULN-006",
+          "tool": "static-analysis",
+          "severity": "HIGH"
+        }
+      ],
+      "timestamp": "2025-12-15T15:53:48.870Z",
+      "confirmed": false,
+      "_fingerprint": "5c043fda4d5cdb55",
+      "_fingerprintSource": "cwe:CWE-862||cat:A01||loc:rule:allow create: if request.auth != null;||vuln:rule:allow create: if request.auth != null;||title:missing creator validation"
+    },
+    {
+      "id": "VULN-011",
+      "category": "A01",
+      "cwe": "CWE-862",
+      "cweName": "Missing Authorization",
+      "severity": "HIGH",
+      "title": "Missing Authorization on User Document Creation",
+      "description": "Users can create user documents with arbitrary IDs, potentially impersonating other users.",
+      "evidence": "alice123 created document at /users/impersonated-user",
+      "remediation": "Restrict creation: allow create: if request.auth.uid == userId",
+      "tool": "firebase-emulator",
+      "timestamp": "2025-12-15T15:53:55.762Z",
+      "tools": [
+        "firebase-emulator"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "733b32b93cda37b3",
+      "_fingerprintSource": "cwe:CWE-862||cat:A01||title:missing authorization on user document creation"
+    },
+    {
+      "id": "VULN-012",
+      "category": "A01",
+      "cwe": "CWE-863",
+      "cweName": "Incorrect Authorization",
+      "severity": "HIGH",
+      "title": "Sender ID Spoofing in Messages",
+      "description": "Users can create messages with a senderId that doesn't match their authentication.",
+      "evidence": "alice123 created message with senderId: bob456",
+      "remediation": "Validate sender: allow create: if request.resource.data.senderId == request.auth.uid",
+      "tool": "firebase-emulator",
+      "timestamp": "2025-12-15T15:53:55.762Z",
+      "tools": [
+        "firebase-emulator"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "f35ea332a975c800",
+      "_fingerprintSource": "cwe:CWE-863||cat:A01||title:sender id spoofing in messages"
+    },
+    {
+      "id": "VULN-013",
+      "category": "A01",
+      "cwe": "CWE-863",
+      "cweName": "Incorrect Authorization",
+      "severity": "HIGH",
+      "title": "client-side-isadmin",
+      "description": "Client-side admin check. CWE-863",
+      "evidence": {
+        "file": "/home/nillof/Exjobb/Claude1/social-media-app/src/App.jsx",
+        "line": 32,
+        "endLine": 32,
+        "code": "return currentUser && userProfile?.isAdmin ? children : <Navigate to=\"/\" />;"
+      },
+      "remediation": null,
+      "tool": "semgrep",
+      "timestamp": "2025-12-15T15:53:59.173Z",
+      "tools": [
+        "semgrep"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "19ce3123a978c36e",
+      "_fingerprintSource": "cwe:CWE-863||cat:A01||loc:file:/home/nillof/Exjobb/Claude1/social-media-app/src/App.jsx|line:32||vuln:code:return currentuser && userprofile?.isadmin ? children : <navigate to=/ />;||title:client-side-isadmin"
+    },
+    {
+      "id": "VULN-014",
+      "category": "A01",
+      "cwe": "CWE-863",
+      "cweName": "Incorrect Authorization",
+      "severity": "HIGH",
+      "title": "client-side-isadmin",
+      "description": "Client-side admin check. CWE-863",
+      "evidence": {
+        "file": "/home/nillof/Exjobb/Claude1/social-media-app/src/components/PostCard.jsx",
+        "line": 109,
+        "endLine": 109,
+        "code": "const isAdmin = userProfile?.isAdmin;"
+      },
+      "remediation": null,
+      "tool": "semgrep",
+      "timestamp": "2025-12-15T15:53:59.173Z",
+      "tools": [
+        "semgrep"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "bd632695c9b4419e",
+      "_fingerprintSource": "cwe:CWE-863||cat:A01||loc:file:/home/nillof/Exjobb/Claude1/social-media-app/src/components/PostCard.jsx|line:109||vuln:code:const isadmin = userprofile?.isadmin;||title:client-side-isadmin"
+    },
+    {
+      "id": "VULN-015",
+      "category": "A01",
+      "cwe": "CWE-863",
+      "cweName": "Incorrect Authorization",
+      "severity": "HIGH",
+      "title": "client-side-isadmin",
+      "description": "Client-side admin check. CWE-863",
+      "evidence": {
+        "file": "/home/nillof/Exjobb/Claude1/social-media-app/src/pages/AdminLoginPage.jsx",
+        "line": 24,
+        "endLine": 24,
+        "code": "if (userDoc.exists() && userDoc.data().isAdmin) {"
+      },
+      "remediation": null,
+      "tool": "semgrep",
+      "timestamp": "2025-12-15T15:53:59.174Z",
+      "tools": [
+        "semgrep"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "2832153f2d54fcbf",
+      "_fingerprintSource": "cwe:CWE-863||cat:A01||loc:file:/home/nillof/Exjobb/Claude1/social-media-app/src/pages/AdminLoginPage.jsx|line:24||vuln:code:if (userdoc.exists() && userdoc.data().isadmin) {||title:client-side-isadmin"
+    },
+    {
+      "id": "VULN-016",
+      "category": "A01",
+      "cwe": "CWE-863",
+      "cweName": "Incorrect Authorization",
+      "severity": "HIGH",
+      "title": "client-side-isadmin",
+      "description": "Client-side admin check. CWE-863",
+      "evidence": {
+        "file": "/home/nillof/Exjobb/Claude1/social-media-app/src/pages/AdminPage.jsx",
+        "line": 147,
+        "endLine": 147,
+        "code": "user.isAdmin ? 'bg-purple-100 text-purple-800' : 'bg-gray-100 text-gray-800'"
+      },
+      "remediation": null,
+      "tool": "semgrep",
+      "timestamp": "2025-12-15T15:53:59.174Z",
+      "tools": [
+        "semgrep"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "67670c534678c528",
+      "_fingerprintSource": "cwe:CWE-863||cat:A01||loc:file:/home/nillof/Exjobb/Claude1/social-media-app/src/pages/AdminPage.jsx|line:147||vuln:code:user.isadmin ? bg-purple-100 text-purple-800 : bg-gray-100 text-gray-800||title:client-side-isadmin"
+    },
+    {
+      "id": "VULN-017",
+      "category": "A01",
+      "cwe": "CWE-863",
+      "cweName": "Incorrect Authorization",
+      "severity": "HIGH",
+      "title": "client-side-isadmin",
+      "description": "Client-side admin check. CWE-863",
+      "evidence": {
+        "file": "/home/nillof/Exjobb/Claude1/social-media-app/src/pages/AdminPage.jsx",
+        "line": 149,
+        "endLine": 149,
+        "code": "{user.isAdmin ? 'Admin' : 'User'}"
+      },
+      "remediation": null,
+      "tool": "semgrep",
+      "timestamp": "2025-12-15T15:53:59.174Z",
+      "tools": [
+        "semgrep"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "33d30abd25e3bca4",
+      "_fingerprintSource": "cwe:CWE-863||cat:A01||loc:file:/home/nillof/Exjobb/Claude1/social-media-app/src/pages/AdminPage.jsx|line:149||vuln:code:{user.isadmin ? admin : user}||title:client-side-isadmin"
+    },
+    {
+      "id": "VULN-018",
+      "category": "A01",
+      "cwe": "CWE-863",
+      "cweName": "Incorrect Authorization",
+      "severity": "HIGH",
+      "title": "client-side-isadmin",
+      "description": "Client-side admin check. CWE-863",
+      "evidence": {
+        "file": "/home/nillof/Exjobb/Claude1/social-media-app/src/pages/AdminPage.jsx",
+        "line": 154,
+        "endLine": 154,
+        "code": "onClick={() => handleToggleAdmin(user.id, user.isAdmin)}"
+      },
+      "remediation": null,
+      "tool": "semgrep",
+      "timestamp": "2025-12-15T15:53:59.174Z",
+      "tools": [
+        "semgrep"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "4c1345997231d6dc",
+      "_fingerprintSource": "cwe:CWE-863||cat:A01||loc:file:/home/nillof/Exjobb/Claude1/social-media-app/src/pages/AdminPage.jsx|line:154||vuln:code:onclick={() => handletoggleadmin(user.id, user.isadmin)}||title:client-side-isadmin"
+    },
+    {
+      "id": "VULN-019",
+      "category": "A01",
+      "cwe": "CWE-863",
+      "cweName": "Incorrect Authorization",
+      "severity": "HIGH",
+      "title": "client-side-isadmin",
+      "description": "Client-side admin check. CWE-863",
+      "evidence": {
+        "file": "/home/nillof/Exjobb/Claude1/social-media-app/src/pages/AdminPage.jsx",
+        "line": 157,
+        "endLine": 157,
+        "code": "{user.isAdmin ? 'Remove Admin' : 'Make Admin'}"
+      },
+      "remediation": null,
+      "tool": "semgrep",
+      "timestamp": "2025-12-15T15:53:59.174Z",
+      "tools": [
+        "semgrep"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "5c41be5959653e15",
+      "_fingerprintSource": "cwe:CWE-863||cat:A01||loc:file:/home/nillof/Exjobb/Claude1/social-media-app/src/pages/AdminPage.jsx|line:157||vuln:code:{user.isadmin ? remove admin : make admin}||title:client-side-isadmin"
+    },
+    {
+      "id": "VULN-020",
+      "category": "A02",
+      "cwe": "CWE-798",
+      "cweName": "Unknown",
+      "severity": "HIGH",
+      "title": "Hardcoded Generic Password found",
+      "description": "Found potential Generic Password in https://www.googletagmanager.com/gtag/js?l=dataLayer&id=G-QNY21XMFM0",
+      "evidence": null,
+      "remediation": null,
+      "tool": "crypto-scanner",
+      "tools": [
+        "crypto-scanner"
+      ],
+      "duplicateCount": 3,
+      "mergedFrom": [
+        {
+          "id": "VULN-049",
+          "tool": "crypto-scanner",
+          "severity": "HIGH"
+        },
+        {
+          "id": "VULN-050",
+          "tool": "crypto-scanner",
+          "severity": "HIGH"
+        },
+        {
+          "id": "VULN-054",
+          "tool": "crypto-scanner",
+          "severity": "HIGH"
+        }
+      ],
+      "timestamp": "2025-12-15T15:55:05.091Z",
+      "confirmed": false,
+      "_fingerprint": "8fac7ab7f44109dd",
+      "_fingerprintSource": "cwe:CWE-798||cat:A02||title:hardcoded generic password found"
+    },
+    {
+      "id": "VULN-021",
+      "category": "A03",
+      "cwe": "CWE-434",
+      "cweName": "Unrestricted Upload of File with Dangerous Type",
+      "severity": "HIGH",
+      "title": "Unrestricted File Type Upload - Executable",
+      "description": "Storage rules do not restrict executable file uploads.",
+      "evidence": "Upload of .exe file to profiles succeeded",
+      "remediation": "Add content type validation: allow write: if request.resource.contentType.matches('image/.*')",
+      "tool": "firebase-emulator",
+      "timestamp": "2025-12-15T15:53:55.762Z",
+      "tools": [
+        "firebase-emulator"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "0d823cda4c3fbe61",
+      "_fingerprintSource": "cwe:CWE-434||cat:A03||title:unrestricted file type upload - executable"
+    },
+    {
+      "id": "VULN-022",
+      "category": "A01",
+      "cwe": "CWE-284",
+      "cweName": "Improper Access Control",
+      "severity": "MEDIUM",
+      "title": "Unauthenticated Read Access to Posts",
+      "description": "Posts are readable without authentication. Consider if this is intentional for public content.",
+      "evidence": "Unauthenticated read on /posts/{postId} succeeded",
+      "remediation": "If posts should be private, add: allow read: if request.auth != null",
+      "tool": "firebase-emulator",
+      "timestamp": "2025-12-15T15:53:55.762Z",
+      "tools": [
+        "firebase-emulator"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "f5c167243df79b33",
+      "_fingerprintSource": "cwe:CWE-284||cat:A01||title:unauthenticated read access to posts"
+    },
+    {
+      "id": "VULN-023",
+      "category": "A01",
+      "cwe": "CWE-284",
+      "cweName": "Improper Access Control",
+      "severity": "MEDIUM",
+      "title": "firebase-no-auth-deletedoc",
+      "description": "Firestore deleteDoc without auth check. CWE-284",
+      "evidence": {
+        "file": "/home/nillof/Exjobb/Claude1/social-media-app/src/components/PostCard.jsx",
+        "line": 92,
+        "endLine": 92,
+        "code": "await deleteDoc(doc(db, 'posts', post.id));"
+      },
+      "remediation": null,
+      "tool": "semgrep",
+      "timestamp": "2025-12-15T15:53:59.173Z",
+      "tools": [
+        "semgrep"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "17ffde0ba6fc418f",
+      "_fingerprintSource": "cwe:CWE-284||cat:A01||loc:file:/home/nillof/Exjobb/Claude1/social-media-app/src/components/PostCard.jsx|line:92||vuln:code:await deletedoc(doc(db, posts, post.id));||title:firebase-no-auth-deletedoc"
+    },
+    {
+      "id": "VULN-024",
+      "category": "A01",
+      "cwe": "CWE-284",
+      "cweName": "Improper Access Control",
+      "severity": "MEDIUM",
+      "title": "firebase-no-auth-setdoc",
+      "description": "Firestore setDoc without auth check. CWE-284",
+      "evidence": {
+        "file": "/home/nillof/Exjobb/Claude1/social-media-app/src/contexts/AuthContext.jsx",
+        "line": 33,
+        "endLine": 54,
+        "code": "await setDoc(doc(db, 'users', user.uid), {\n      uid: user.uid,\n      email: email,\n      displayName: displayName,\n      name: displayName,\n      age: null,\n      city: '',\n      country: '',\n      bio: '',\n      profilePicture: '',\n      banner: 'gradient1',\n      theme: 'default',\n      colorScheme: 'rose',\n      friends: [],\n      friendRequests: [],\n      referralCode: generateReferralCode(),\n      referralPoints: 0,\n      referralsUsed: 0,\n      referralOptOut: false,\n      createdAt: serverTimestamp(),\n      isAdmin: false\n    });"
+      },
+      "remediation": null,
+      "tool": "semgrep",
+      "timestamp": "2025-12-15T15:53:59.173Z",
+      "tools": [
+        "semgrep"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "7e305b4e550f6596",
+      "_fingerprintSource": "cwe:CWE-284||cat:A01||loc:file:/home/nillof/Exjobb/Claude1/social-media-app/src/contexts/AuthContext.jsx|line:33||vuln:code:await setdoc(doc(db, users, user.uid), { uid: user.uid, email: email, displaynam||title:firebase-no-auth-setdoc"
+    },
+    {
+      "id": "VULN-025",
+      "category": "A01",
+      "cwe": "CWE-284",
+      "cweName": "Improper Access Control",
+      "severity": "MEDIUM",
+      "title": "firebase-no-auth-deletedoc",
+      "description": "Firestore deleteDoc without auth check. CWE-284",
+      "evidence": {
+        "file": "/home/nillof/Exjobb/Claude1/social-media-app/src/pages/AdminPage.jsx",
+        "line": 40,
+        "endLine": 40,
+        "code": "await deleteDoc(doc(db, 'users', userId));"
+      },
+      "remediation": null,
+      "tool": "semgrep",
+      "timestamp": "2025-12-15T15:53:59.174Z",
+      "tools": [
+        "semgrep"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "fff2d8e6e6a0b365",
+      "_fingerprintSource": "cwe:CWE-284||cat:A01||loc:file:/home/nillof/Exjobb/Claude1/social-media-app/src/pages/AdminPage.jsx|line:40||vuln:code:await deletedoc(doc(db, users, userid));||title:firebase-no-auth-deletedoc"
+    },
+    {
+      "id": "VULN-026",
+      "category": "A01",
+      "cwe": "CWE-284",
+      "cweName": "Improper Access Control",
+      "severity": "MEDIUM",
+      "title": "firebase-no-auth-deletedoc",
+      "description": "Firestore deleteDoc without auth check. CWE-284",
+      "evidence": {
+        "file": "/home/nillof/Exjobb/Claude1/social-media-app/src/pages/AdminPage.jsx",
+        "line": 42,
+        "endLine": 42,
+        "code": "await Promise.all(userPosts.map(p => deleteDoc(doc(db, 'posts', p.id))));"
+      },
+      "remediation": null,
+      "tool": "semgrep",
+      "timestamp": "2025-12-15T15:53:59.174Z",
+      "tools": [
+        "semgrep"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "d90278ff40dc4a92",
+      "_fingerprintSource": "cwe:CWE-284||cat:A01||loc:file:/home/nillof/Exjobb/Claude1/social-media-app/src/pages/AdminPage.jsx|line:42||vuln:code:await promise.all(userposts.map(p => deletedoc(doc(db, posts, p.id))));||title:firebase-no-auth-deletedoc"
+    },
+    {
+      "id": "VULN-027",
+      "category": "A01",
+      "cwe": "CWE-284",
+      "cweName": "Improper Access Control",
+      "severity": "MEDIUM",
+      "title": "firebase-no-auth-deletedoc",
+      "description": "Firestore deleteDoc without auth check. CWE-284",
+      "evidence": {
+        "file": "/home/nillof/Exjobb/Claude1/social-media-app/src/pages/AdminPage.jsx",
+        "line": 55,
+        "endLine": 55,
+        "code": "await deleteDoc(doc(db, 'posts', postId));"
+      },
+      "remediation": null,
+      "tool": "semgrep",
+      "timestamp": "2025-12-15T15:53:59.174Z",
+      "tools": [
+        "semgrep"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "a0d0c753f50cefac",
+      "_fingerprintSource": "cwe:CWE-284||cat:A01||loc:file:/home/nillof/Exjobb/Claude1/social-media-app/src/pages/AdminPage.jsx|line:55||vuln:code:await deletedoc(doc(db, posts, postid));||title:firebase-no-auth-deletedoc"
+    },
+    {
+      "id": "VULN-028",
+      "category": "A01",
+      "cwe": "CWE-284",
+      "cweName": "Improper Access Control",
+      "severity": "MEDIUM",
+      "title": "firebase-no-auth-deletedoc",
+      "description": "Firestore deleteDoc without auth check. CWE-284",
+      "evidence": {
+        "file": "/home/nillof/Exjobb/Claude1/social-media-app/src/pages/SettingsPage.jsx",
+        "line": 87,
+        "endLine": 87,
+        "code": "await deleteDoc(doc(db, 'users', currentUser.uid));"
+      },
+      "remediation": null,
+      "tool": "semgrep",
+      "timestamp": "2025-12-15T15:53:59.175Z",
+      "tools": [
+        "semgrep"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "8d8be04de3db6e62",
+      "_fingerprintSource": "cwe:CWE-284||cat:A01||loc:file:/home/nillof/Exjobb/Claude1/social-media-app/src/pages/SettingsPage.jsx|line:87||vuln:code:await deletedoc(doc(db, users, currentuser.uid));||title:firebase-no-auth-deletedoc"
+    },
+    {
+      "id": "VULN-029",
+      "category": "A01",
+      "cwe": "CWE-668",
+      "cweName": "Unknown",
+      "severity": "MEDIUM",
+      "title": "Draft Content Exposed to Other Users",
+      "description": "Unpublished/draft content is accessible to users other than the author.",
+      "evidence": "bob456 accessed alice123's draft posts",
+      "remediation": "Add visibility check: allow read: if resource.data.status == \"published\" || request.auth.uid == resource.data.userId",
+      "tool": "firebase-emulator",
+      "timestamp": "2025-12-15T15:53:55.762Z",
+      "tools": [
+        "firebase-emulator"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "a20995916ac311eb",
+      "_fingerprintSource": "cwe:CWE-668||cat:A01||title:draft content exposed to other users"
+    },
+    {
+      "id": "VULN-030",
+      "category": "A02",
+      "cwe": "CWE-1035",
+      "cweName": "Unknown",
+      "severity": "MEDIUM",
+      "title": "Vulnerable dependency: @firebase/auth",
+      "description": "undici",
+      "evidence": {
+        "package": "@firebase/auth",
+        "version": "1.7.7-20240813205648 - 1.7.7-canary.1ff9661af || 1.7.8-20240827161511 - 1.7.9",
+        "fixAvailable": true
+      },
+      "remediation": "Update to fixed version",
+      "tool": "sca",
+      "timestamp": "2025-12-15T15:55:03.855Z",
+      "tools": [
+        "sca"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "b5f7d3628571cfd3",
+      "_fingerprintSource": "cwe:CWE-1035||cat:A02||title:vulnerable dependency: @firebase/auth"
+    },
+    {
+      "id": "VULN-031",
+      "category": "A02",
+      "cwe": "CWE-1035",
+      "cweName": "Unknown",
+      "severity": "MEDIUM",
+      "title": "Vulnerable dependency: @firebase/auth-compat",
+      "description": "@firebase/auth, undici",
+      "evidence": {
+        "package": "@firebase/auth-compat",
+        "version": "0.5.12-20240813205648 - 0.5.12-canary.fa0ed08fb || 0.5.13-20240827161511 - 0.5.14",
+        "fixAvailable": true
+      },
+      "remediation": "Update to fixed version",
+      "tool": "sca",
+      "timestamp": "2025-12-15T15:55:03.855Z",
+      "tools": [
+        "sca"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "5c26c7bffd487490",
+      "_fingerprintSource": "cwe:CWE-1035||cat:A02||title:vulnerable dependency: @firebase/auth-compat"
+    },
+    {
+      "id": "VULN-032",
+      "category": "A02",
+      "cwe": "CWE-1035",
+      "cweName": "Unknown",
+      "severity": "MEDIUM",
+      "title": "Vulnerable dependency: @firebase/firestore",
+      "description": "undici",
+      "evidence": {
+        "package": "@firebase/firestore",
+        "version": "4.7.0-20240813205648 - 4.7.0-canary.fa0ed08fb || 4.7.1-20240827161511 - 4.7.3",
+        "fixAvailable": true
+      },
+      "remediation": "Update to fixed version",
+      "tool": "sca",
+      "timestamp": "2025-12-15T15:55:03.855Z",
+      "tools": [
+        "sca"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "206dd9766a7926d0",
+      "_fingerprintSource": "cwe:CWE-1035||cat:A02||title:vulnerable dependency: @firebase/firestore"
+    },
+    {
+      "id": "VULN-033",
+      "category": "A02",
+      "cwe": "CWE-1035",
+      "cweName": "Unknown",
+      "severity": "MEDIUM",
+      "title": "Vulnerable dependency: @firebase/firestore-compat",
+      "description": "@firebase/firestore",
+      "evidence": {
+        "package": "@firebase/firestore-compat",
+        "version": "<=0.0.900-exp.520ca39d0 || 0.3.25-20240130223218 - 0.3.25-20240131233318 || 0.3.30-20240424141009 - 0.3.30-dataconnect-preview.f2ddc3d7b || 0.3.35-20240813205648 - 0.3.35-canary.fa0ed08fb || 0.3.36-20240827161511 - 0.3.38",
+        "fixAvailable": true
+      },
+      "remediation": "Update to fixed version",
+      "tool": "sca",
+      "timestamp": "2025-12-15T15:55:03.855Z",
+      "tools": [
+        "sca"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "b00bd48dde6867c2",
+      "_fingerprintSource": "cwe:CWE-1035||cat:A02||title:vulnerable dependency: @firebase/firestore-compat"
+    },
+    {
+      "id": "VULN-034",
+      "category": "A02",
+      "cwe": "CWE-1035",
+      "cweName": "Unknown",
+      "severity": "MEDIUM",
+      "title": "Vulnerable dependency: @firebase/functions",
+      "description": "undici",
+      "evidence": {
+        "package": "@firebase/functions",
+        "version": "0.11.7-20240827161511 - 0.11.8",
+        "fixAvailable": true
+      },
+      "remediation": "Update to fixed version",
+      "tool": "sca",
+      "timestamp": "2025-12-15T15:55:03.856Z",
+      "tools": [
+        "sca"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "bb00be60b66e6ec5",
+      "_fingerprintSource": "cwe:CWE-1035||cat:A02||title:vulnerable dependency: @firebase/functions"
+    },
+    {
+      "id": "VULN-035",
+      "category": "A02",
+      "cwe": "CWE-1035",
+      "cweName": "Unknown",
+      "severity": "MEDIUM",
+      "title": "Vulnerable dependency: @firebase/functions-compat",
+      "description": "@firebase/functions",
+      "evidence": {
+        "package": "@firebase/functions-compat",
+        "version": "0.3.13-20240827161511 - 0.3.14",
+        "fixAvailable": true
+      },
+      "remediation": "Update to fixed version",
+      "tool": "sca",
+      "timestamp": "2025-12-15T15:55:03.856Z",
+      "tools": [
+        "sca"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "491955fc547b616a",
+      "_fingerprintSource": "cwe:CWE-1035||cat:A02||title:vulnerable dependency: @firebase/functions-compat"
+    },
+    {
+      "id": "VULN-036",
+      "category": "A02",
+      "cwe": "CWE-1035",
+      "cweName": "Unknown",
+      "severity": "MEDIUM",
+      "title": "Vulnerable dependency: @firebase/storage",
+      "description": "undici",
+      "evidence": {
+        "package": "@firebase/storage",
+        "version": "0.13.0-20240814182916 - 0.13.0-canary.fa0ed08fb || 0.13.1-20240827161511 - 0.13.2",
+        "fixAvailable": true
+      },
+      "remediation": "Update to fixed version",
+      "tool": "sca",
+      "timestamp": "2025-12-15T15:55:03.856Z",
+      "tools": [
+        "sca"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "38707d26315b8889",
+      "_fingerprintSource": "cwe:CWE-1035||cat:A02||title:vulnerable dependency: @firebase/storage"
+    },
+    {
+      "id": "VULN-037",
+      "category": "A02",
+      "cwe": "CWE-1035",
+      "cweName": "Unknown",
+      "severity": "MEDIUM",
+      "title": "Vulnerable dependency: @firebase/storage-compat",
+      "description": "@firebase/storage",
+      "evidence": {
+        "package": "@firebase/storage-compat",
+        "version": "<=0.0.900-exp.520ca39d0 || 0.1.4-202192711727 - 0.1.4-canary.f27fe4304 || 0.3.10-20240814182916 - 0.3.10-canary.fa0ed08fb || 0.3.11-20240827161511 - 0.3.12",
+        "fixAvailable": true
+      },
+      "remediation": "Update to fixed version",
+      "tool": "sca",
+      "timestamp": "2025-12-15T15:55:03.856Z",
+      "tools": [
+        "sca"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "4b3a922ffd6671d3",
+      "_fingerprintSource": "cwe:CWE-1035||cat:A02||title:vulnerable dependency: @firebase/storage-compat"
+    },
+    {
+      "id": "VULN-038",
+      "category": "A02",
+      "cwe": "CWE-1035",
+      "cweName": "Unknown",
+      "severity": "MEDIUM",
+      "title": "Vulnerable dependency: esbuild",
+      "description": "esbuild enables any website to send any requests to the development server and read the response",
+      "evidence": {
+        "package": "esbuild",
+        "version": "<=0.24.2",
+        "fixAvailable": {
+          "name": "vite",
+          "version": "7.3.0",
+          "isSemVerMajor": true
+        }
+      },
+      "remediation": "Update to fixed version",
+      "tool": "sca",
+      "timestamp": "2025-12-15T15:55:03.856Z",
+      "tools": [
+        "sca"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "de0acdcc75f390be",
+      "_fingerprintSource": "cwe:CWE-1035||cat:A02||title:vulnerable dependency: esbuild"
+    },
+    {
+      "id": "VULN-039",
+      "category": "A02",
+      "cwe": "CWE-1035",
+      "cweName": "Unknown",
+      "severity": "MEDIUM",
+      "title": "Vulnerable dependency: firebase",
+      "description": "@firebase/auth, @firebase/auth-compat, @firebase/firestore, @firebase/firestore-compat, @firebase/functions, @firebase/functions-compat, @firebase/storage, @firebase/storage-compat",
+      "evidence": {
+        "package": "firebase",
+        "version": "0.900.22 || 7.9.1-0 - 7.9.1-canary.0396117e || 8.10.0-20217172214 - 8.10.0-canary.f40c0db53 || 9.0.0-20217250818 - 9.0.0-canary.d0d3acb10 || 9.0.1-2021727231341 - 9.0.1-canary.e039e1472 || 9.0.2-2021891633 - 9.0.2-canary.ff9baf70c || 9.0.3-202181503543 - 9.1.0-canary.f7d8324a1 || 9.1.1-2021830195733 - 9.1.1-canary.e70de6201 || 9.1.2-20219523556 - 9.1.2-canary.fc1d36497 || 9.22.1-20230524195328 || 10.12.2-20240523185724 - 10.12.2-canary.872e6f63e || 10.13.0-20240813205648 - 10.13.0-canary.fa0ed08fb || 10.13.1-20240827161511 - 10.14.1 || 11.9.0-20250603144652 - 11.9.0-canary.5871fd656",
+        "fixAvailable": true
+      },
+      "remediation": "Update to fixed version",
+      "tool": "sca",
+      "timestamp": "2025-12-15T15:55:03.856Z",
+      "tools": [
+        "sca"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "bab67bd6baf3a8b6",
+      "_fingerprintSource": "cwe:CWE-1035||cat:A02||title:vulnerable dependency: firebase"
+    },
+    {
+      "id": "VULN-040",
+      "category": "A02",
+      "cwe": "CWE-1035",
+      "cweName": "Unknown",
+      "severity": "MEDIUM",
+      "title": "Vulnerable dependency: undici",
+      "description": "Use of Insufficiently Random Values in undici, undici Denial of Service attack via bad certificate data",
+      "evidence": {
+        "package": "undici",
+        "version": "6.0.0 - 6.21.1",
+        "fixAvailable": true
+      },
+      "remediation": "Update to fixed version",
+      "tool": "sca",
+      "timestamp": "2025-12-15T15:55:03.856Z",
+      "tools": [
+        "sca"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "f2e382efe9589387",
+      "_fingerprintSource": "cwe:CWE-1035||cat:A02||title:vulnerable dependency: undici"
+    },
+    {
+      "id": "VULN-041",
+      "category": "A02",
+      "cwe": "CWE-1035",
+      "cweName": "Unknown",
+      "severity": "MEDIUM",
+      "title": "Vulnerable dependency: vite",
+      "description": "esbuild",
+      "evidence": {
+        "package": "vite",
+        "version": "0.11.0 - 6.1.6",
+        "fixAvailable": {
+          "name": "vite",
+          "version": "7.3.0",
+          "isSemVerMajor": true
+        }
+      },
+      "remediation": "Update to fixed version",
+      "tool": "sca",
+      "timestamp": "2025-12-15T15:55:03.856Z",
+      "tools": [
+        "sca"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "b20201bc1f4bebf9",
+      "_fingerprintSource": "cwe:CWE-1035||cat:A02||title:vulnerable dependency: vite"
+    },
+    {
+      "id": "VULN-042",
+      "category": "A02",
+      "cwe": "CWE-311",
+      "cweName": "Missing Encryption of Sensitive Data",
+      "severity": "MEDIUM",
+      "title": "Public Storage Access",
+      "description": "Storage files are publicly readable. Consider if this is necessary.",
+      "evidence": {
+        "rule": "allow read: if true"
+      },
+      "remediation": "Consider: allow read: if request.auth != null",
+      "tool": "static-analysis",
+      "timestamp": "2025-12-15T15:53:48.870Z",
+      "tools": [
+        "static-analysis"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "e49ef171d02d0e12",
+      "_fingerprintSource": "cwe:CWE-311||cat:A02||loc:rule:allow read: if true||vuln:rule:allow read: if true||title:public storage access"
+    },
+    {
+      "id": "VULN-043",
+      "category": "A02",
+      "cwe": "CWE-330",
+      "cweName": "Use of Insufficiently Random Values",
+      "severity": "MEDIUM",
+      "title": "Weak Random detected",
+      "description": "Found Weak Random in https://www.googletagmanager.com/gtag/js?l=dataLayer&id=G-QNY21XMFM0. This may indicate weak cryptographic practices.",
+      "evidence": null,
+      "remediation": null,
+      "tool": "crypto-scanner",
+      "tools": [
+        "crypto-scanner"
+      ],
+      "duplicateCount": 2,
+      "mergedFrom": [
+        {
+          "id": "VULN-053",
+          "tool": "crypto-scanner",
+          "severity": "MEDIUM"
+        },
+        {
+          "id": "VULN-055",
+          "tool": "crypto-scanner",
+          "severity": "MEDIUM"
+        }
+      ],
+      "timestamp": "2025-12-15T15:55:05.091Z",
+      "confirmed": false,
+      "_fingerprint": "c9c51dcd58f3ba92",
+      "_fingerprintSource": "cwe:CWE-330||cat:A02||title:weak random detected"
+    },
+    {
+      "id": "VULN-044",
+      "category": "A02",
+      "cwe": "CWE-798",
+      "cweName": "Unknown",
+      "severity": "MEDIUM",
+      "title": "Hardcoded Generic Token found",
+      "description": "Found potential Generic Token in https://claude1-f630a.web.app/assets/index-Ksqx9DM4.js",
+      "evidence": null,
+      "remediation": null,
+      "tool": "crypto-scanner",
+      "tools": [
+        "crypto-scanner"
+      ],
+      "duplicateCount": 2,
+      "mergedFrom": [
+        {
+          "id": "VULN-051",
+          "tool": "crypto-scanner",
+          "severity": "MEDIUM"
+        },
+        {
+          "id": "VULN-052",
+          "tool": "crypto-scanner",
+          "severity": "MEDIUM"
+        }
+      ],
+      "timestamp": "2025-12-15T15:55:05.091Z",
+      "confirmed": false,
+      "_fingerprint": "e253f430bf54dd1c",
+      "_fingerprintSource": "cwe:CWE-798||cat:A02||title:hardcoded generic token found"
+    },
+    {
+      "id": "VULN-045",
+      "category": "A03",
+      "cwe": "CWE-434",
+      "cweName": "Unrestricted Upload of File with Dangerous Type",
+      "severity": "MEDIUM",
+      "title": "Missing File Type Validation in Storage Rules",
+      "description": "Storage rules do not validate file content type",
+      "evidence": null,
+      "remediation": "Add: && request.resource.contentType.matches('image/.*')",
+      "tool": "static-analysis",
+      "timestamp": "2025-12-15T15:53:48.870Z",
+      "tools": [
+        "static-analysis"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "7a89ddfe7772272a",
+      "_fingerprintSource": "cwe:CWE-434||cat:A03||title:missing file type validation in storage rules"
+    },
+    {
+      "id": "VULN-046",
+      "category": "A03",
+      "cwe": "CWE-434",
+      "cweName": "Unrestricted Upload of File with Dangerous Type",
+      "severity": "MEDIUM",
+      "title": "Unrestricted File Type Upload - HTML",
+      "description": "Storage rules allow HTML file uploads which could be used for XSS.",
+      "evidence": "Upload of .html file succeeded",
+      "remediation": "Restrict to safe content types for user uploads",
+      "tool": "firebase-emulator",
+      "timestamp": "2025-12-15T15:53:55.762Z",
+      "tools": [
+        "firebase-emulator"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "daed57226690c3f5",
+      "_fingerprintSource": "cwe:CWE-434||cat:A03||title:unrestricted file type upload - html"
+    },
+    {
+      "id": "VULN-047",
+      "category": "A03",
+      "cwe": "CWE-434",
+      "cweName": "Unrestricted Upload of File with Dangerous Type",
+      "severity": "MEDIUM",
+      "title": "Unrestricted File Type Upload - SVG",
+      "description": "Storage rules allow SVG uploads which can contain embedded scripts.",
+      "evidence": "Upload of .svg file succeeded",
+      "remediation": "If allowing images, explicitly list safe types: image/jpeg, image/png, image/gif, image/webp",
+      "tool": "firebase-emulator",
+      "timestamp": "2025-12-15T15:53:55.762Z",
+      "tools": [
+        "firebase-emulator"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "16fd5c76599496d6",
+      "_fingerprintSource": "cwe:CWE-434||cat:A03||title:unrestricted file type upload - svg"
+    },
+    {
+      "id": "VULN-048",
+      "category": "A03",
+      "cwe": "CWE-79",
+      "cweName": "Cross-site Scripting (XSS)",
+      "severity": "MEDIUM",
+      "title": "firebase-stored-xss",
+      "description": "User content stored. CWE-79",
+      "evidence": {
+        "file": "/home/nillof/Exjobb/Claude1/social-media-app/src/pages/MessagesPage.jsx",
+        "line": 88,
+        "endLine": 94,
+        "code": "await addDoc(collection(db, 'messages'), {\n        content: newMessage.trim(),\n        senderId: currentUser.uid,\n        senderName: userProfile?.displayName || userProfile?.name,\n        participants: [currentUser.uid, selectedFriend.id],\n        createdAt: serverTimestamp()\n      });"
+      },
+      "remediation": null,
+      "tool": "semgrep",
+      "timestamp": "2025-12-15T15:53:59.175Z",
+      "tools": [
+        "semgrep"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "a8b0305a852d4eea",
+      "_fingerprintSource": "cwe:CWE-79||cat:A03||loc:file:/home/nillof/Exjobb/Claude1/social-media-app/src/pages/MessagesPage.jsx|line:88||vuln:code:await adddoc(collection(db, messages), { content: newmessage.trim(), senderid: c||title:stored xss"
+    },
+    {
+      "id": "VULN-049",
+      "category": "A03",
+      "cwe": "CWE-434",
+      "cweName": "Unrestricted Upload of File with Dangerous Type",
+      "severity": "LOW",
+      "title": "firebase-upload",
+      "description": "File upload. CWE-434",
+      "evidence": {
+        "file": "/home/nillof/Exjobb/Claude1/social-media-app/src/components/PostCreate.jsx",
+        "line": 58,
+        "endLine": 58,
+        "code": "await uploadBytes(imageRef, image);"
+      },
+      "remediation": null,
+      "tool": "semgrep",
+      "timestamp": "2025-12-15T15:53:59.173Z",
+      "tools": [
+        "semgrep"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "ddafd0a530f2e4e1",
+      "_fingerprintSource": "cwe:CWE-434||cat:A03||loc:file:/home/nillof/Exjobb/Claude1/social-media-app/src/components/PostCreate.jsx|line:58||vuln:code:await uploadbytes(imageref, image);||title:firebase-upload"
+    },
+    {
+      "id": "VULN-050",
+      "category": "A03",
+      "cwe": "CWE-434",
+      "cweName": "Unrestricted Upload of File with Dangerous Type",
+      "severity": "LOW",
+      "title": "firebase-upload",
+      "description": "File upload. CWE-434",
+      "evidence": {
+        "file": "/home/nillof/Exjobb/Claude1/social-media-app/src/pages/SettingsPage.jsx",
+        "line": 45,
+        "endLine": 45,
+        "code": "await uploadBytes(imageRef, file);"
+      },
+      "remediation": null,
+      "tool": "semgrep",
+      "timestamp": "2025-12-15T15:53:59.175Z",
+      "tools": [
+        "semgrep"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "94d66a568b6244e9",
+      "_fingerprintSource": "cwe:CWE-434||cat:A03||loc:file:/home/nillof/Exjobb/Claude1/social-media-app/src/pages/SettingsPage.jsx|line:45||vuln:code:await uploadbytes(imageref, file);||title:firebase-upload"
+    }
+  ],
+  "cweCoverage": {
+    "A01_BrokenAccessControl": [
+      "CWE-22",
+      "CWE-23",
+      "CWE-200",
+      "CWE-201",
+      "CWE-219",
+      "CWE-264",
+      "CWE-275",
+      "CWE-276",
+      "CWE-284",
+      "CWE-285",
+      "CWE-352",
+      "CWE-359",
+      "CWE-425",
+      "CWE-441",
+      "CWE-497",
+      "CWE-538",
+      "CWE-540",
+      "CWE-548",
+      "CWE-552",
+      "CWE-566",
+      "CWE-601",
+      "CWE-639",
+      "CWE-651",
+      "CWE-668",
+      "CWE-706",
+      "CWE-862",
+      "CWE-863",
+      "CWE-913",
+      "CWE-922",
+      "CWE-1275"
+    ],
+    "A02_CryptographicFailures": [
+      "CWE-261",
+      "CWE-296",
+      "CWE-310",
+      "CWE-319",
+      "CWE-321",
+      "CWE-322",
+      "CWE-323",
+      "CWE-324",
+      "CWE-325",
+      "CWE-326",
+      "CWE-327",
+      "CWE-328",
+      "CWE-329",
+      "CWE-330",
+      "CWE-331",
+      "CWE-335",
+      "CWE-336",
+      "CWE-337",
+      "CWE-338",
+      "CWE-340",
+      "CWE-347",
+      "CWE-523",
+      "CWE-757",
+      "CWE-759",
+      "CWE-760",
+      "CWE-780",
+      "CWE-818",
+      "CWE-916"
+    ],
+    "A03_Injection": [
+      "CWE-20",
+      "CWE-74",
+      "CWE-75",
+      "CWE-77",
+      "CWE-78",
+      "CWE-79",
+      "CWE-80",
+      "CWE-83",
+      "CWE-87",
+      "CWE-88",
+      "CWE-89",
+      "CWE-90",
+      "CWE-91",
+      "CWE-93",
+      "CWE-94",
+      "CWE-95",
+      "CWE-96",
+      "CWE-97",
+      "CWE-98",
+      "CWE-99",
+      "CWE-113",
+      "CWE-116",
+      "CWE-138",
+      "CWE-184",
+      "CWE-470",
+      "CWE-471",
+      "CWE-564",
+      "CWE-610",
+      "CWE-643",
+      "CWE-644",
+      "CWE-652",
+      "CWE-917",
+      "CWE-943"
+    ]
+  }
+}

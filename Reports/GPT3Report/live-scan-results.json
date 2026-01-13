@@ -1,0 +1,206 @@
+{
+  "metadata": {
+    "scanDate": "2025-12-15T15:02:49.047Z",
+    "target": "https://gpt-3-3dd1e.firebaseapp.com",
+    "projectId": "gpt-3-3dd1e",
+    "type": "live-security-test"
+  },
+  "summary": {
+    "total": 6,
+    "bySeverity": {
+      "CRITICAL": 2,
+      "HIGH": 2,
+      "MEDIUM": 2,
+      "LOW": 0
+    },
+    "testResults": {
+      "passed": 3,
+      "failed": 6
+    }
+  },
+  "findings": [
+    {
+      "id": "LIVE-001",
+      "category": "A01",
+      "cwe": "CWE-269",
+      "severity": "CRITICAL",
+      "title": "Privilege Escalation: Self-Elevation to Admin",
+      "description": "User successfully set their own isAdmin flag to true",
+      "evidence": {
+        "userId": "yptspZ2GsXcCyh3tEypzs7pe87D2",
+        "before": false,
+        "after": true
+      },
+      "remediation": "Prevent modification of privilege fields in Firestore rules OR use Custom Claims",
+      "tool": "live-scanner",
+      "confirmed": true,
+      "timestamp": "2025-12-15T15:02:30.615Z"
+    },
+    {
+      "id": "LIVE-002",
+      "category": "A01",
+      "cwe": "CWE-269",
+      "severity": "CRITICAL",
+      "title": "Privilege Escalation: Self-Elevation to Owner",
+      "description": "User successfully set their own isOwner flag to true",
+      "evidence": {
+        "userId": "yptspZ2GsXcCyh3tEypzs7pe87D2",
+        "before": false,
+        "after": true
+      },
+      "remediation": "Prevent modification of privilege fields in Firestore rules",
+      "tool": "live-scanner",
+      "confirmed": true,
+      "timestamp": "2025-12-15T15:02:31.191Z"
+    },
+    {
+      "id": "LIVE-003",
+      "category": "A01",
+      "cwe": "CWE-284",
+      "severity": "HIGH",
+      "title": "Improper Access Control: Unauthenticated User Data Access",
+      "description": "3 user profiles readable without authentication",
+      "evidence": {
+        "userCount": 3,
+        "exposedFields": [
+          "referralMonthlyCount",
+          "profilePictureUrl",
+          "about",
+          "age",
+          "displayName",
+          "role",
+          "referralPoints",
+          "email",
+          "city",
+          "country",
+          "referralMonth",
+          "createdAt",
+          "friends",
+          "theme",
+          "referralOptIn",
+          "billingAddress",
+          "billingNotes",
+          "displayNameLower",
+          "banner",
+          "billingName"
+        ],
+        "sensitiveFields": [
+          "age",
+          "email",
+          "city",
+          "country",
+          "friends"
+        ]
+      },
+      "remediation": "Change to: allow read: if request.auth != null",
+      "tool": "live-scanner",
+      "confirmed": true,
+      "timestamp": "2025-12-15T15:02:36.869Z"
+    },
+    {
+      "id": "LIVE-004",
+      "category": "A02",
+      "cwe": "CWE-311",
+      "severity": "MEDIUM",
+      "title": "Public Post Access",
+      "description": "2 posts readable without authentication",
+      "evidence": {
+        "postCount": 2
+      },
+      "remediation": "Consider: allow read: if resource.data.visibility == \"public\"",
+      "tool": "live-scanner",
+      "confirmed": true,
+      "timestamp": "2025-12-15T15:02:37.069Z"
+    },
+    {
+      "id": "LIVE-005",
+      "category": "A01",
+      "cwe": "CWE-639",
+      "severity": "MEDIUM",
+      "title": "IDOR: User Enumeration",
+      "description": "Authenticated user can enumerate and access all user profiles",
+      "evidence": {
+        "usersAccessible": 3
+      },
+      "remediation": "Restrict read access to own profile or implement field-level security",
+      "tool": "live-scanner",
+      "confirmed": true,
+      "timestamp": "2025-12-15T15:02:42.913Z"
+    },
+    {
+      "id": "LIVE-006",
+      "category": "A02",
+      "cwe": "CWE-359",
+      "severity": "HIGH",
+      "title": "Exposure of Private Personal Information",
+      "description": "Other users' PII accessible: email, friends",
+      "evidence": {
+        "exposedPII": [
+          "email",
+          "friends"
+        ],
+        "affectedUsers": 2
+      },
+      "remediation": "Implement field-level access control or separate public/private profile data",
+      "tool": "live-scanner",
+      "confirmed": true,
+      "timestamp": "2025-12-15T15:02:45.265Z"
+    }
+  ],
+  "testResults": [
+    {
+      "name": "Privilege Escalation (isAdmin)",
+      "passed": false,
+      "details": "User elevated to admin",
+      "timestamp": "2025-12-15T15:02:30.615Z"
+    },
+    {
+      "name": "Privilege Escalation (isOwner)",
+      "passed": false,
+      "details": "User elevated to owner",
+      "timestamp": "2025-12-15T15:02:31.191Z"
+    },
+    {
+      "name": "Cross-User Modification",
+      "passed": true,
+      "details": "Protected: 7 PERMISSION_DENIED: Missing or insufficient permissions.",
+      "timestamp": "2025-12-15T15:02:34.923Z"
+    },
+    {
+      "name": "Unauthenticated User Read",
+      "passed": false,
+      "details": "Read 3 users",
+      "timestamp": "2025-12-15T15:02:36.869Z"
+    },
+    {
+      "name": "Unauthenticated Post Read",
+      "passed": false,
+      "details": "Read 2 posts",
+      "timestamp": "2025-12-15T15:02:37.069Z"
+    },
+    {
+      "name": "Message Injection",
+      "passed": true,
+      "details": "Protected: 7 PERMISSION_DENIED: Missing or insufficient permissions.",
+      "timestamp": "2025-12-15T15:02:40.548Z"
+    },
+    {
+      "name": "User Enumeration",
+      "passed": false,
+      "details": "Accessed 3 users",
+      "timestamp": "2025-12-15T15:02:42.913Z"
+    },
+    {
+      "name": "PII Exposure",
+      "passed": false,
+      "details": "Exposed: email, friends",
+      "timestamp": "2025-12-15T15:02:45.265Z"
+    },
+    {
+      "name": "Stored XSS",
+      "passed": true,
+      "details": "All payloads blocked",
+      "timestamp": "2025-12-15T15:02:49.046Z"
+    }
+  ]
+}

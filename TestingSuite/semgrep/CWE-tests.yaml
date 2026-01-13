@@ -1,0 +1,1449 @@
+rules:
+  # A01: BROKEN ACCESS CONTROL
+  - id: path-traversal-read
+    mode: taint
+    message: "Path traversal in file read. CWE-22"
+    metadata:
+      cwe: "CWE-22"
+      owasp: "A01:2021"
+    severity: ERROR
+    languages: [javascript, typescript]
+    pattern-sources:
+      - pattern: req.params.$X
+      - pattern: req.query.$X
+      - pattern: req.body.$X
+    pattern-sinks:
+      - pattern: fs.readFile($PATH, ...)
+      - pattern: fs.readFileSync($PATH)
+    pattern-sanitizers:
+      - pattern: path.basename($X)
+
+  - id: path-traversal-write
+    mode: taint
+    message: "Path traversal in file write. CWE-22"
+    metadata:
+      cwe: "CWE-22"
+      owasp: "A01:2021"
+    severity: ERROR
+    languages: [javascript, typescript]
+    pattern-sources:
+      - pattern: req.params.$X
+      - pattern: req.query.$X
+      - pattern: req.body.$X
+    pattern-sinks:
+      - pattern: fs.writeFile($PATH, ...)
+      - pattern: fs.writeFileSync($PATH, ...)
+    pattern-sanitizers:
+      - pattern: path.basename($X)
+
+  - id: error-stack-exposure
+    pattern: res.send($ERR.stack)
+    message: "Stack trace exposed. CWE-200"
+    metadata:
+      cwe: "CWE-200"
+      owasp: "A01:2021"
+    severity: WARNING
+    languages: [javascript, typescript]
+
+  - id: console-log-password
+    pattern: console.log(..., $X.password, ...)
+    message: "Password logged. CWE-200"
+    metadata:
+      cwe: "CWE-200"
+      owasp: "A01:2021"
+    severity: WARNING
+    languages: [javascript, typescript]
+
+  - id: cors-allow-all
+    pattern: "cors({ origin: '*' })"
+    message: "CORS allows all. CWE-352"
+    metadata:
+      cwe: "CWE-352"
+      owasp: "A01:2021"
+    severity: WARNING
+    languages: [javascript, typescript]
+
+  - id: cors-allow-true
+    pattern: "cors({ origin: true })"
+    message: "CORS allows all. CWE-352"
+    metadata:
+      cwe: "CWE-352"
+      owasp: "A01:2021"
+    severity: WARNING
+    languages: [javascript, typescript]
+
+  - id: ssrf-fetch
+    mode: taint
+    message: "SSRF in fetch. CWE-441"
+    metadata:
+      cwe: "CWE-441"
+      owasp: "A01:2021"
+    severity: ERROR
+    languages: [javascript, typescript]
+    pattern-sources:
+      - pattern: req.query.$X
+      - pattern: req.body.$X
+    pattern-sinks:
+      - pattern: fetch($URL)
+      - pattern: axios.get($URL)
+      - pattern: axios.post($URL, ...)
+
+  - id: hardcoded-api-secret
+    pattern: const apiSecret = "..."
+    message: "Hardcoded secret. CWE-540"
+    metadata:
+      cwe: "CWE-540"
+      owasp: "A01:2021"
+    severity: ERROR
+    languages: [javascript, typescript]
+
+  - id: open-redirect-taint
+    mode: taint
+    message: "Open redirect. CWE-601"
+    metadata:
+      cwe: "CWE-601"
+      owasp: "A01:2021"
+    severity: ERROR
+    languages: [javascript, typescript]
+    pattern-sources:
+      - pattern: req.query.$X
+      - pattern: req.body.$X
+    pattern-sinks:
+      - pattern: res.redirect($URL)
+
+  - id: open-redirect-window
+    patterns:
+      - pattern: window.location.href = $URL
+      - pattern-not: window.location.href = "..."
+    message: "Open redirect. CWE-601"
+    metadata:
+      cwe: "CWE-601"
+      owasp: "A01:2021"
+    severity: WARNING
+    languages: [javascript, typescript]
+
+  - id: prototype-pollution-object
+    pattern: Object.prototype.$PROP = $VALUE
+    message: "Prototype pollution. CWE-706"
+    metadata:
+      cwe: "CWE-706"
+      owasp: "A01:2021"
+    severity: ERROR
+    languages: [javascript, typescript]
+
+  - id: prototype-pollution-array
+    pattern: Array.prototype.$PROP = $VALUE
+    message: "Prototype pollution. CWE-706"
+    metadata:
+      cwe: "CWE-706"
+      owasp: "A01:2021"
+    severity: ERROR
+    languages: [javascript, typescript]
+
+  - id: client-side-isadmin
+    pattern: $USER.isAdmin
+    message: "Client-side admin check. CWE-863"
+    metadata:
+      cwe: "CWE-863"
+      owasp: "A01:2021"
+    severity: ERROR
+    languages: [javascript, typescript]
+
+  - id: dynamic-require
+    patterns:
+      - pattern: require($VAR)
+      - pattern-not: require("...")
+    message: "Dynamic require. CWE-913"
+    metadata:
+      cwe: "CWE-913"
+      owasp: "A01:2021"
+    severity: WARNING
+    languages: [javascript, typescript]
+
+  - id: localstorage-authtoken
+    pattern: localStorage.setItem('authToken', $VALUE)
+    message: "Token in localStorage. CWE-922"
+    metadata:
+      cwe: "CWE-922"
+      owasp: "A01:2021"
+    severity: ERROR
+    languages: [javascript, typescript]
+
+  - id: localstorage-token
+    pattern: localStorage.setItem('token', $VALUE)
+    message: "Token in localStorage. CWE-922"
+    metadata:
+      cwe: "CWE-922"
+      owasp: "A01:2021"
+    severity: ERROR
+    languages: [javascript, typescript]
+
+  # A02: CRYPTOGRAPHIC FAILURES
+  - id: hardcoded-password
+    pattern: const password = "..."
+    message: "Hardcoded password. CWE-259"
+    metadata:
+      cwe: "CWE-259"
+      owasp: "A02:2021"
+    severity: ERROR
+    languages: [javascript, typescript]
+
+  - id: tls-disabled
+    pattern: process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'
+    message: "TLS disabled. CWE-296"
+    metadata:
+      cwe: "CWE-296"
+      owasp: "A02:2021"
+    severity: ERROR
+    languages: [javascript, typescript]
+
+  - id: tls-reject-false
+    pattern: "rejectUnauthorized: false"
+    message: "TLS rejectUnauthorized false. CWE-296"
+    metadata:
+      cwe: "CWE-296"
+      owasp: "A02:2021"
+    severity: ERROR
+    languages: [javascript, typescript]
+
+  - id: http-fetch
+    pattern: fetch("http://...")
+    message: "HTTP not HTTPS. CWE-319"
+    metadata:
+      cwe: "CWE-319"
+      owasp: "A02:2021"
+    severity: ERROR
+    languages: [javascript, typescript]
+
+  - id: hardcoded-jwt-sign
+    pattern: jwt.sign($PAYLOAD, "...")
+    message: "Hardcoded JWT secret. CWE-321"
+    metadata:
+      cwe: "CWE-321"
+      owasp: "A02:2021"
+    severity: ERROR
+    languages: [javascript, typescript]
+
+  - id: weak-hash-md5
+    pattern: crypto.createHash('md5')
+    message: "MD5 is weak. CWE-327"
+    metadata:
+      cwe: "CWE-327"
+      owasp: "A02:2021"
+    severity: ERROR
+    languages: [javascript, typescript]
+
+  - id: weak-hash-sha1
+    pattern: crypto.createHash('sha1')
+    message: "SHA1 is weak. CWE-327"
+    metadata:
+      cwe: "CWE-327"
+      owasp: "A02:2021"
+    severity: ERROR
+    languages: [javascript, typescript]
+
+  - id: weak-bcrypt-5
+    pattern: bcrypt.hashSync($PASS, 5)
+    message: "Bcrypt 5 rounds weak. CWE-328"
+    metadata:
+      cwe: "CWE-328"
+      owasp: "A02:2021"
+    severity: WARNING
+    languages: [javascript, typescript]
+
+  - id: math-random-token
+    pattern: Math.random().toString(36).substring($X)
+    message: "Math.random() insecure. CWE-330"
+    metadata:
+      cwe: "CWE-330"
+      owasp: "A02:2021"
+    severity: ERROR
+    languages: [javascript, typescript]
+
+  - id: jwt-decode-no-verify
+    pattern: jwt.decode($TOKEN)
+    message: "JWT no verify. CWE-347"
+    metadata:
+      cwe: "CWE-347"
+      owasp: "A02:2021"
+    severity: ERROR
+    languages: [javascript, typescript]
+
+  - id: credentials-url-apikey
+    pattern: fetch(`...?api_key=${$KEY}...`)
+    message: "API key in URL. CWE-523"
+    metadata:
+      cwe: "CWE-523"
+      owasp: "A02:2021"
+    severity: ERROR
+    languages: [javascript, typescript]
+
+  # A03: INJECTION
+  - id: firebase-body-direct
+    pattern: addDoc($COLLECTION, req.body)
+    message: "req.body to Firestore. CWE-20"
+    metadata:
+      cwe: "CWE-20"
+      owasp: "A03:2021"
+    severity: WARNING
+    languages: [javascript, typescript]
+
+  - id: command-injection-taint
+    mode: taint
+    message: "Command injection. CWE-78"
+    metadata:
+      cwe: "CWE-78"
+      owasp: "A03:2021"
+    severity: ERROR
+    languages: [javascript, typescript]
+    pattern-sources:
+      - pattern: req.query.$X
+      - pattern: req.body.$X
+    pattern-sinks:
+      - pattern: exec($CMD)
+      - pattern: execSync($CMD)
+
+  - id: command-injection-template
+    pattern: exec(`$PREFIX ${$VAR} $SUFFIX`)
+    message: "Template in exec. CWE-78"
+    metadata:
+      cwe: "CWE-78"
+      owasp: "A03:2021"
+    severity: ERROR
+    languages: [javascript, typescript]
+
+  - id: react-dangerouslysetinnerhtml
+    pattern: dangerouslySetInnerHTML=$X
+    message: "dangerouslySetInnerHTML XSS. CWE-79"
+    metadata:
+      cwe: "CWE-79"
+      owasp: "A03:2021"
+    severity: ERROR
+    languages: [javascript, typescript]
+
+  - id: dom-xss-innerhtml
+    patterns:
+      - pattern: $EL.innerHTML = $INPUT
+      - pattern-not: $EL.innerHTML = "..."
+    message: "innerHTML XSS. CWE-79"
+    metadata:
+      cwe: "CWE-79"
+      owasp: "A03:2021"
+    severity: ERROR
+    languages: [javascript, typescript]
+
+  - id: dom-xss-document-write
+    patterns:
+      - pattern: document.write($INPUT)
+      - pattern-not: document.write("...")
+    message: "document.write XSS. CWE-79"
+    metadata:
+      cwe: "CWE-79"
+      owasp: "A03:2021"
+    severity: ERROR
+    languages: [javascript, typescript]
+
+  - id: sql-injection-select
+    pattern: $DB.query(`SELECT ... ${$INPUT} ...`)
+    message: "SQL injection. CWE-89"
+    metadata:
+      cwe: "CWE-89"
+      owasp: "A03:2021"
+    severity: ERROR
+    languages: [javascript, typescript]
+
+  - id: eval-injection
+    pattern: eval($CODE)
+    message: "eval injection. CWE-94"
+    metadata:
+      cwe: "CWE-94"
+      owasp: "A03:2021"
+    severity: ERROR
+    languages: [javascript, typescript]
+
+  - id: function-constructor
+    pattern: new Function($CODE)
+    message: "Function constructor. CWE-94"
+    metadata:
+      cwe: "CWE-94"
+      owasp: "A03:2021"
+    severity: ERROR
+    languages: [javascript, typescript]
+
+  - id: incomplete-xss-filter
+    pattern: $INPUT.replace('<script>', '')
+    message: "Incomplete XSS filter. CWE-184"
+    metadata:
+      cwe: "CWE-184"
+      owasp: "A03:2021"
+    severity: WARNING
+    languages: [javascript, typescript]
+
+  - id: firebase-upload
+    pattern: uploadBytes($REF, $FILE)
+    message: "File upload. CWE-434"
+    metadata:
+      cwe: "CWE-434"
+      owasp: "A03:2021"
+    severity: INFO
+    languages: [javascript, typescript]
+
+  - id: template-injection-nunjucks
+    pattern: nunjucks.renderString($USER_INPUT, ...)
+    message: "Template injection. CWE-917"
+    metadata:
+      cwe: "CWE-917"
+      owasp: "A03:2021"
+    severity: ERROR
+    languages: [javascript, typescript]
+
+  - id: nosql-injection-where
+    pattern: "$COLLECTION.find({$where: $INPUT})"
+    message: "NoSQL $where injection. CWE-943"
+    metadata:
+      cwe: "CWE-943"
+      owasp: "A03:2021"
+    severity: ERROR
+    languages: [javascript, typescript]
+
+  # FIREBASE-SPECIFIC
+  - id: firebase-stored-xss
+    pattern: "addDoc($COLLECTION, {..., content: $INPUT, ...})"
+    message: "User content stored. CWE-79"
+    metadata:
+      cwe: "CWE-79"
+      owasp: "A03:2021"
+    severity: WARNING
+    languages: [javascript, typescript]
+
+  - id: postmessage-wildcard
+    pattern: parent.postMessage($DATA, '*')
+    message: "postMessage wildcard. CWE-200"
+    metadata:
+      cwe: "CWE-200"
+      owasp: "A01:2021"
+    severity: WARNING
+    languages: [javascript, typescript]
+
+# ============================================================================
+  # ADDITIONAL A03: INJECTION RULES
+  # ============================================================================
+
+  # CWE-78: More Command Injection patterns
+  - id: command-injection-spawn-shell
+    pattern: "spawn($CMD, $ARGS, {shell: true})"
+    message: "spawn with shell=true. CWE-78"
+    metadata:
+      cwe: "CWE-78"
+      owasp: "A03:2021"
+    severity: ERROR
+    languages: [javascript, typescript]
+
+  # CWE-89: More SQL Injection patterns
+  - id: sql-injection-knex-raw
+    pattern: "knex.raw($QUERY)"
+    message: "SQL via knex.raw (validate input). CWE-89"
+    metadata:
+      cwe: "CWE-89"
+      owasp: "A03:2021"
+    severity: WARNING
+    languages: [javascript, typescript]
+
+  - id: sql-injection-sequelize-query
+    pattern: "sequelize.query($QUERY)"
+    message: "SQL via sequelize.query. CWE-89"
+    metadata:
+      cwe: "CWE-89"
+      owasp: "A03:2021"
+    severity: WARNING
+    languages: [javascript, typescript]
+
+  - id: sql-injection-prisma-raw
+    pattern: "prisma.$queryRawUnsafe($QUERY)"
+    message: "Unsafe Prisma raw query. CWE-89"
+    metadata:
+      cwe: "CWE-89"
+      owasp: "A03:2021"
+    severity: ERROR
+    languages: [javascript, typescript]
+
+  - id: sql-injection-prisma-execute
+    pattern: "prisma.$executeRawUnsafe($QUERY)"
+    message: "Unsafe Prisma execute. CWE-89"
+    metadata:
+      cwe: "CWE-89"
+      owasp: "A03:2021"
+    severity: ERROR
+    languages: [javascript, typescript]
+
+  # CWE-90: LDAP Injection
+  - id: ldap-injection-filter
+    pattern: "$CLIENT.search($BASE, {filter: $INPUT})"
+    message: "LDAP filter injection. CWE-90"
+    metadata:
+      cwe: "CWE-90"
+      owasp: "A03:2021"
+    severity: ERROR
+    languages: [javascript, typescript]
+
+  # CWE-93/CWE-113: CRLF/HTTP Response Splitting
+  - id: crlf-header-injection
+    mode: taint
+    message: "HTTP header injection. CWE-113"
+    metadata:
+      cwe: "CWE-113"
+      owasp: "A03:2021"
+    severity: ERROR
+    languages: [javascript, typescript]
+    pattern-sources:
+      - pattern: req.query.$X
+      - pattern: req.body.$X
+      - pattern: req.params.$X
+    pattern-sinks:
+      - pattern: res.setHeader($NAME, $VALUE)
+      - pattern: res.set($NAME, $VALUE)
+
+  # CWE-470: Unsafe Reflection (more patterns)
+  - id: unsafe-reflection-this
+    patterns:
+      - pattern: this[$METHOD]()
+      - pattern-not: this["..."]()
+    message: "Dynamic this[] method call. CWE-470"
+    metadata:
+      cwe: "CWE-470"
+      owasp: "A03:2021"
+    severity: WARNING
+    languages: [javascript, typescript]
+
+  # CWE-471: Prototype Modification (MAID)
+  - id: object-defineProperty-prototype
+    pattern: Object.defineProperty($OBJ.prototype, ...)
+    message: "Prototype modification. CWE-471"
+    metadata:
+      cwe: "CWE-471"
+      owasp: "A03:2021"
+    severity: WARNING
+    languages: [javascript, typescript]
+
+  - id: object-assign-proto
+    pattern: Object.assign($OBJ.__proto__, ...)
+    message: "Object.assign to __proto__. CWE-471"
+    metadata:
+      cwe: "CWE-471"
+      owasp: "A03:2021"
+    severity: ERROR
+    languages: [javascript, typescript]
+
+  # CWE-79: More XSS patterns
+  - id: xss-jquery-html
+    patterns:
+      - pattern: $($SEL).html($INPUT)
+      - pattern-not: $($SEL).html("...")
+    message: "jQuery .html() XSS. CWE-79"
+    metadata:
+      cwe: "CWE-79"
+      owasp: "A03:2021"
+    severity: ERROR
+    languages: [javascript, typescript]
+
+  - id: xss-jquery-append
+    patterns:
+      - pattern: $($SEL).append($INPUT)
+      - pattern-not: $($SEL).append("...")
+    message: "jQuery .append() XSS. CWE-79"
+    metadata:
+      cwe: "CWE-79"
+      owasp: "A03:2021"
+    severity: WARNING
+    languages: [javascript, typescript]
+
+  - id: xss-jquery-prepend
+    patterns:
+      - pattern: $($SEL).prepend($INPUT)
+      - pattern-not: $($SEL).prepend("...")
+    message: "jQuery .prepend() XSS. CWE-79"
+    metadata:
+      cwe: "CWE-79"
+      owasp: "A03:2021"
+    severity: WARNING
+    languages: [javascript, typescript]
+
+  # CWE-95: Eval via setTimeout/setInterval
+  - id: eval-settimeout-string
+    patterns:
+      - pattern: setTimeout($CODE, $TIME)
+      - pattern-not: setTimeout(function() {...}, $TIME)
+      - pattern-not: setTimeout(() => {...}, $TIME)
+      - pattern-not: setTimeout($FUNC, $TIME)
+    message: "setTimeout with string eval. CWE-95"
+    metadata:
+      cwe: "CWE-95"
+      owasp: "A03:2021"
+    severity: WARNING
+    languages: [javascript, typescript]
+
+  # CWE-943: More NoSQL Injection
+  - id: nosql-mongodb-aggregate
+    pattern: $COLLECTION.aggregate($PIPELINE)
+    message: "MongoDB aggregate (validate pipeline). CWE-943"
+    metadata:
+      cwe: "CWE-943"
+      owasp: "A03:2021"
+    severity: INFO
+    languages: [javascript, typescript]
+
+  # ============================================================================
+  # ADDITIONAL A02: CRYPTOGRAPHIC FAILURES RULES
+  # ============================================================================
+
+  # CWE-261: Weak Password Encoding
+  - id: weak-password-encoding-base64
+    pattern: Buffer.from($PASSWORD).toString('base64')
+    message: "Password base64 (reversible). CWE-261"
+    metadata:
+      cwe: "CWE-261"
+      owasp: "A02:2021"
+    severity: ERROR
+    languages: [javascript, typescript]
+
+  - id: weak-password-encoding-btoa
+    pattern: btoa($PASSWORD)
+    message: "Password btoa (reversible). CWE-261"
+    metadata:
+      cwe: "CWE-261"
+      owasp: "A02:2021"
+    severity: ERROR
+    languages: [javascript, typescript]
+
+  - id: weak-password-encoding-hex
+    pattern: Buffer.from($PASSWORD).toString('hex')
+    message: "Password hex (reversible). CWE-261"
+    metadata:
+      cwe: "CWE-261"
+      owasp: "A02:2021"
+    severity: ERROR
+    languages: [javascript, typescript]
+
+  # CWE-319: More Cleartext Transmission
+  - id: cleartext-ws
+    pattern: new WebSocket("ws://...")
+    message: "Unencrypted WebSocket (use wss://). CWE-319"
+    metadata:
+      cwe: "CWE-319"
+      owasp: "A02:2021"
+    severity: ERROR
+    languages: [javascript, typescript]
+
+  - id: cleartext-xmlhttprequest
+    pattern: $XHR.open($METHOD, "http://...")
+    message: "HTTP in XMLHttpRequest. CWE-319"
+    metadata:
+      cwe: "CWE-319"
+      owasp: "A02:2021"
+    severity: ERROR
+    languages: [javascript, typescript]
+
+  # CWE-321: More Hardcoded Keys
+  - id: hardcoded-encryption-key
+    pattern: const encryptionKey = "..."
+    message: "Hardcoded encryption key. CWE-321"
+    metadata:
+      cwe: "CWE-321"
+      owasp: "A02:2021"
+    severity: ERROR
+    languages: [javascript, typescript]
+
+  - id: hardcoded-aes-key
+    pattern: const aesKey = "..."
+    message: "Hardcoded AES key. CWE-321"
+    metadata:
+      cwe: "CWE-321"
+      owasp: "A02:2021"
+    severity: ERROR
+    languages: [javascript, typescript]
+
+  - id: hardcoded-signing-key
+    pattern: const signingKey = "..."
+    message: "Hardcoded signing key. CWE-321"
+    metadata:
+      cwe: "CWE-321"
+      owasp: "A02:2021"
+    severity: ERROR
+    languages: [javascript, typescript]
+
+  # CWE-326: Weak RSA Key Size
+  - id: weak-rsa-key-1024
+    pattern: "crypto.generateKeyPairSync('rsa', {modulusLength: 1024, ...})"
+    message: "RSA 1024-bit is weak. CWE-326"
+    metadata:
+      cwe: "CWE-326"
+      owasp: "A02:2021"
+    severity: ERROR
+    languages: [javascript, typescript]
+
+  - id: weak-rsa-key-512
+    pattern: "crypto.generateKeyPairSync('rsa', {modulusLength: 512, ...})"
+    message: "RSA 512-bit is very weak. CWE-326"
+    metadata:
+      cwe: "CWE-326"
+      owasp: "A02:2021"
+    severity: ERROR
+    languages: [javascript, typescript]
+
+  # CWE-329: Static IV with CBC
+  - id: static-iv-cbc-string
+    pattern: crypto.createCipheriv('aes-256-cbc', $KEY, "...")
+    message: "Static IV with CBC mode. CWE-329"
+    metadata:
+      cwe: "CWE-329"
+      owasp: "A02:2021"
+    severity: ERROR
+    languages: [javascript, typescript]
+
+  - id: static-iv-cbc-128
+    pattern: crypto.createCipheriv('aes-128-cbc', $KEY, "...")
+    message: "Static IV with CBC mode. CWE-329"
+    metadata:
+      cwe: "CWE-329"
+      owasp: "A02:2021"
+    severity: ERROR
+    languages: [javascript, typescript]
+
+  # CWE-759: Hash without Salt
+  - id: hash-without-salt-sha256
+    pattern: crypto.createHash('sha256').update($PASSWORD).digest(...)
+    message: "Password hashed without salt. CWE-759"
+    metadata:
+      cwe: "CWE-759"
+      owasp: "A02:2021"
+    severity: ERROR
+    languages: [javascript, typescript]
+
+  - id: hash-without-salt-sha512
+    pattern: crypto.createHash('sha512').update($PASSWORD).digest(...)
+    message: "Password hashed without salt. CWE-759"
+    metadata:
+      cwe: "CWE-759"
+      owasp: "A02:2021"
+    severity: ERROR
+    languages: [javascript, typescript]
+
+  # CWE-916: Weak Password Hashing
+  - id: weak-pbkdf2-iterations-1000
+    pattern: crypto.pbkdf2Sync($PASS, $SALT, 1000, ...)
+    message: "PBKDF2 1000 iterations too low. CWE-916"
+    metadata:
+      cwe: "CWE-916"
+      owasp: "A02:2021"
+    severity: WARNING
+    languages: [javascript, typescript]
+
+  - id: weak-pbkdf2-iterations-10000
+    pattern: crypto.pbkdf2Sync($PASS, $SALT, 10000, ...)
+    message: "PBKDF2 10000 iterations low. CWE-916"
+    metadata:
+      cwe: "CWE-916"
+      owasp: "A02:2021"
+    severity: INFO
+    languages: [javascript, typescript]
+
+  # CWE-327: More Weak Algorithms
+  - id: weak-cipher-blowfish
+    pattern: crypto.createCipher('blowfish', ...)
+    message: "Blowfish is outdated. CWE-327"
+    metadata:
+      cwe: "CWE-327"
+      owasp: "A02:2021"
+    severity: WARNING
+    languages: [javascript, typescript]
+
+  - id: weak-cipher-3des
+    pattern: crypto.createCipher('des-ede3', ...)
+    message: "3DES is deprecated. CWE-327"
+    metadata:
+      cwe: "CWE-327"
+      owasp: "A02:2021"
+    severity: WARNING
+    languages: [javascript, typescript]
+
+  - id: deprecated-createcipher
+    pattern: crypto.createCipher($ALG, $KEY)
+    message: "Deprecated createCipher (no IV). CWE-327"
+    metadata:
+      cwe: "CWE-327"
+      owasp: "A02:2021"
+    severity: WARNING
+    languages: [javascript, typescript]
+
+  # ============================================================================
+  # ADDITIONAL A01: BROKEN ACCESS CONTROL RULES
+  # ============================================================================
+
+  # CWE-201: Sensitive Data in Response
+  - id: sensitive-data-ssn-response
+    pattern: "res.json({..., ssn: $VAL, ...})"
+    message: "SSN in response. CWE-201"
+    metadata:
+      cwe: "CWE-201"
+      owasp: "A01:2021"
+    severity: ERROR
+    languages: [javascript, typescript]
+
+  - id: sensitive-data-creditcard-response
+    pattern: "res.json({..., creditCard: $VAL, ...})"
+    message: "Credit card in response. CWE-201"
+    metadata:
+      cwe: "CWE-201"
+      owasp: "A01:2021"
+    severity: ERROR
+    languages: [javascript, typescript]
+
+  - id: sensitive-data-password-response
+    pattern: "res.json({..., password: $VAL, ...})"
+    message: "Password in response. CWE-201"
+    metadata:
+      cwe: "CWE-201"
+      owasp: "A01:2021"
+    severity: ERROR
+    languages: [javascript, typescript]
+
+  - id: sensitive-data-secret-response
+    pattern: "res.json({..., secret: $VAL, ...})"
+    message: "Secret in response. CWE-201"
+    metadata:
+      cwe: "CWE-201"
+      owasp: "A01:2021"
+    severity: ERROR
+    languages: [javascript, typescript]
+
+  # CWE-276: Incorrect Default Permissions
+  - id: insecure-file-permissions-777
+    pattern: fs.chmod($PATH, 0o777, ...)
+    message: "chmod 777 is insecure. CWE-276"
+    metadata:
+      cwe: "CWE-276"
+      owasp: "A01:2021"
+    severity: ERROR
+    languages: [javascript, typescript]
+
+  - id: insecure-file-permissions-666
+    pattern: fs.chmod($PATH, 0o666, ...)
+    message: "chmod 666 is insecure. CWE-276"
+    metadata:
+      cwe: "CWE-276"
+      owasp: "A01:2021"
+    severity: ERROR
+    languages: [javascript, typescript]
+
+  - id: insecure-file-permissions-sync
+    pattern: fs.chmodSync($PATH, 0o777)
+    message: "chmodSync 777 is insecure. CWE-276"
+    metadata:
+      cwe: "CWE-276"
+      owasp: "A01:2021"
+    severity: ERROR
+    languages: [javascript, typescript]
+
+  # CWE-359: PII Exposure
+  - id: pii-email-logged
+    pattern: console.log(..., $X.email, ...)
+    message: "Email logged. CWE-359"
+    metadata:
+      cwe: "CWE-359"
+      owasp: "A01:2021"
+    severity: WARNING
+    languages: [javascript, typescript]
+
+  - id: pii-ssn-logged
+    pattern: console.log(..., $X.ssn, ...)
+    message: "SSN logged. CWE-359"
+    metadata:
+      cwe: "CWE-359"
+      owasp: "A01:2021"
+    severity: ERROR
+    languages: [javascript, typescript]
+
+  - id: pii-phone-logged
+    pattern: console.log(..., $X.phone, ...)
+    message: "Phone logged. CWE-359"
+    metadata:
+      cwe: "CWE-359"
+      owasp: "A01:2021"
+    severity: WARNING
+    languages: [javascript, typescript]
+
+  # CWE-497: System Info Exposure
+  - id: system-info-versions
+    pattern: "res.json({..., nodeVersion: process.version, ...})"
+    message: "Node version exposed. CWE-497"
+    metadata:
+      cwe: "CWE-497"
+      owasp: "A01:2021"
+    severity: WARNING
+    languages: [javascript, typescript]
+
+  - id: system-info-env
+    pattern: res.send(process.env)
+    message: "process.env exposed. CWE-497"
+    metadata:
+      cwe: "CWE-497"
+      owasp: "A01:2021"
+    severity: ERROR
+    languages: [javascript, typescript]
+
+  # CWE-1275: Cookie Security
+  - id: cookie-samesite-none
+    pattern: "res.cookie($NAME, $VALUE, {..., sameSite: 'none', ...})"
+    message: "SameSite=none (CSRF risk). CWE-1275"
+    metadata:
+      cwe: "CWE-1275"
+      owasp: "A01:2021"
+    severity: WARNING
+    languages: [javascript, typescript]
+
+  # CWE-639: IDOR
+  - id: idor-direct-id-query
+    pattern: $MODEL.findById(req.params.id)
+    message: "Direct param ID (IDOR risk). CWE-639"
+    metadata:
+      cwe: "CWE-639"
+      owasp: "A01:2021"
+    severity: WARNING
+    languages: [javascript, typescript]
+
+  - id: idor-direct-id-delete
+    pattern: $MODEL.findByIdAndDelete(req.params.id)
+    message: "Delete by param ID (IDOR). CWE-639"
+    metadata:
+      cwe: "CWE-639"
+      owasp: "A01:2021"
+    severity: WARNING
+    languages: [javascript, typescript]
+
+  - id: idor-direct-id-update
+    pattern: $MODEL.findByIdAndUpdate(req.params.id, ...)
+    message: "Update by param ID (IDOR). CWE-639"
+    metadata:
+      cwe: "CWE-639"
+      owasp: "A01:2021"
+    severity: WARNING
+    languages: [javascript, typescript]
+
+  - id: idor-firestore-direct
+    pattern: getDoc(doc($DB, $COLLECTION, req.params.id))
+    message: "Firestore by param ID (IDOR). CWE-639"
+    metadata:
+      cwe: "CWE-639"
+      owasp: "A01:2021"
+    severity: WARNING
+    languages: [javascript, typescript]
+
+# ============================================================================
+  # MORE A03: INJECTION RULES
+  # ============================================================================
+
+  # CWE-77: Command Injection (more patterns)
+  - id: command-injection-fork
+    pattern: fork($MODULE, [..., $INPUT, ...])
+    message: "User input in fork args. CWE-77"
+    metadata:
+      cwe: "CWE-77"
+      owasp: "A03:2021"
+    severity: WARNING
+    languages: [javascript, typescript]
+
+  # CWE-80: Basic XSS (reflected)
+  - id: xss-res-send-query
+    mode: taint
+    message: "Reflected XSS via res.send. CWE-80"
+    metadata:
+      cwe: "CWE-80"
+      owasp: "A03:2021"
+    severity: ERROR
+    languages: [javascript, typescript]
+    pattern-sources:
+      - pattern: req.query.$X
+      - pattern: req.params.$X
+    pattern-sinks:
+      - pattern: res.send($DATA)
+
+  # CWE-83: Script in Attributes
+  - id: xss-href-javascript
+    pattern: href="javascript:..."
+    message: "javascript: URI in href. CWE-83"
+    metadata:
+      cwe: "CWE-83"
+      owasp: "A03:2021"
+    severity: ERROR
+    languages: [javascript, typescript]
+
+  # CWE-88: Argument Injection
+  - id: argument-injection-spawn-args
+    pattern: spawn($CMD, $ARGS)
+    message: "Validate spawn arguments. CWE-88"
+    metadata:
+      cwe: "CWE-88"
+      owasp: "A03:2021"
+    severity: INFO
+    languages: [javascript, typescript]
+
+  - id: argument-injection-execfile-args
+    pattern: execFile($CMD, $ARGS, ...)
+    message: "Validate execFile arguments. CWE-88"
+    metadata:
+      cwe: "CWE-88"
+      owasp: "A03:2021"
+    severity: INFO
+    languages: [javascript, typescript]
+
+  # CWE-93: CRLF Injection (more patterns)
+  - id: crlf-redirect
+    mode: taint
+    message: "CRLF in redirect. CWE-93"
+    metadata:
+      cwe: "CWE-93"
+      owasp: "A03:2021"
+    severity: ERROR
+    languages: [javascript, typescript]
+    pattern-sources:
+      - pattern: req.query.$X
+      - pattern: req.body.$X
+    pattern-sinks:
+      - pattern: res.redirect($URL)
+
+  # CWE-99: Resource Injection
+  - id: resource-injection-createconnection
+    mode: taint
+    message: "Resource injection in connection. CWE-99"
+    metadata:
+      cwe: "CWE-99"
+      owasp: "A03:2021"
+    severity: WARNING
+    languages: [javascript, typescript]
+    pattern-sources:
+      - pattern: req.query.$X
+      - pattern: req.body.$X
+    pattern-sinks:
+      - pattern: net.createConnection($OPTIONS)
+      - pattern: net.connect($OPTIONS)
+
+  # CWE-138: Special Elements (ReDoS)
+  - id: special-elements-regex-input
+    patterns:
+      - pattern: new RegExp($INPUT)
+      - pattern-not: new RegExp("...")
+    message: "User input in RegExp (ReDoS risk). CWE-138"
+    metadata:
+      cwe: "CWE-138"
+      owasp: "A03:2021"
+    severity: WARNING
+    languages: [javascript, typescript]
+
+  - id: special-elements-regex-constructor
+    patterns:
+      - pattern: RegExp($INPUT)
+      - pattern-not: RegExp("...")
+    message: "User input in RegExp. CWE-138"
+    metadata:
+      cwe: "CWE-138"
+      owasp: "A03:2021"
+    severity: WARNING
+    languages: [javascript, typescript]
+
+  # CWE-610: Externally Controlled Reference
+  - id: external-reference-import
+    patterns:
+      - pattern: import($URL)
+      - pattern-not: import("...")
+    message: "Dynamic import from URL. CWE-610"
+    metadata:
+      cwe: "CWE-610"
+      owasp: "A03:2021"
+    severity: ERROR
+    languages: [javascript, typescript]
+
+  - id: external-reference-script-src
+    patterns:
+      - pattern: $SCRIPT.src = $URL
+      - pattern-not: $SCRIPT.src = "..."
+    message: "Dynamic script.src. CWE-610"
+    metadata:
+      cwe: "CWE-610"
+      owasp: "A03:2021"
+    severity: ERROR
+    languages: [javascript, typescript]
+
+  # ============================================================================
+  # MORE A02: CRYPTOGRAPHIC FAILURES RULES
+  # ============================================================================
+
+  # CWE-322: Key Exchange without Authentication
+  - id: key-exchange-dh
+    pattern: crypto.createDiffieHellman($SIZE)
+    message: "DH key exchange (ensure authentication). CWE-322"
+    metadata:
+      cwe: "CWE-322"
+      owasp: "A02:2021"
+    severity: INFO
+    languages: [javascript, typescript]
+
+  - id: key-exchange-ecdh
+    pattern: crypto.createECDH($CURVE)
+    message: "ECDH key exchange (ensure authentication). CWE-322"
+    metadata:
+      cwe: "CWE-322"
+      owasp: "A02:2021"
+    severity: INFO
+    languages: [javascript, typescript]
+
+  # CWE-336/337: PRNG Seed Issues
+  - id: prng-seed-time
+    pattern: $RNG.seed(Date.now())
+    message: "Predictable time-based seed. CWE-337"
+    metadata:
+      cwe: "CWE-337"
+      owasp: "A02:2021"
+    severity: WARNING
+    languages: [javascript, typescript]
+
+  # CWE-338: Weak PRNG (more patterns)
+  - id: weak-prng-math-floor-random
+    pattern: Math.floor(Math.random() * $X)
+    message: "Math.random for random int. CWE-338"
+    metadata:
+      cwe: "CWE-338"
+      owasp: "A02:2021"
+    severity: WARNING
+    languages: [javascript, typescript]
+
+  - id: weak-prng-array-sort-random
+    pattern: $ARR.sort(() => Math.random() - 0.5)
+    message: "Math.random for shuffle. CWE-338"
+    metadata:
+      cwe: "CWE-338"
+      owasp: "A02:2021"
+    severity: INFO
+    languages: [javascript, typescript]
+
+  # CWE-760: Predictable Salt
+  - id: predictable-salt-static
+    pattern: bcrypt.hash($PASS, "...")
+    message: "Static salt in bcrypt. CWE-760"
+    metadata:
+      cwe: "CWE-760"
+      owasp: "A02:2021"
+    severity: ERROR
+    languages: [javascript, typescript]
+
+  - id: predictable-salt-username
+    pattern: crypto.pbkdf2Sync($PASS, $USER.username, ...)
+    message: "Username as salt. CWE-760"
+    metadata:
+      cwe: "CWE-760"
+      owasp: "A02:2021"
+    severity: ERROR
+    languages: [javascript, typescript]
+
+  - id: predictable-salt-email
+    pattern: crypto.pbkdf2Sync($PASS, $USER.email, ...)
+    message: "Email as salt. CWE-760"
+    metadata:
+      cwe: "CWE-760"
+      owasp: "A02:2021"
+    severity: ERROR
+    languages: [javascript, typescript]
+
+  # CWE-780: RSA without OAEP
+  - id: rsa-pkcs1-padding
+    pattern: "crypto.publicEncrypt({padding: crypto.constants.RSA_PKCS1_PADDING, ...}, ...)"
+    message: "RSA PKCS1 padding (use OAEP). CWE-780"
+    metadata:
+      cwe: "CWE-780"
+      owasp: "A02:2021"
+    severity: WARNING
+    languages: [javascript, typescript]
+
+  # More weak bcrypt rounds
+  - id: weak-bcrypt-1
+    pattern: bcrypt.hashSync($PASS, 1)
+    message: "Bcrypt 1 round very weak. CWE-916"
+    metadata:
+      cwe: "CWE-916"
+      owasp: "A02:2021"
+    severity: ERROR
+    languages: [javascript, typescript]
+
+  - id: weak-bcrypt-2
+    pattern: bcrypt.hashSync($PASS, 2)
+    message: "Bcrypt 2 rounds very weak. CWE-916"
+    metadata:
+      cwe: "CWE-916"
+      owasp: "A02:2021"
+    severity: ERROR
+    languages: [javascript, typescript]
+
+  - id: weak-bcrypt-3
+    pattern: bcrypt.hashSync($PASS, 3)
+    message: "Bcrypt 3 rounds very weak. CWE-916"
+    metadata:
+      cwe: "CWE-916"
+      owasp: "A02:2021"
+    severity: ERROR
+    languages: [javascript, typescript]
+
+  # ============================================================================
+  # MORE A01: BROKEN ACCESS CONTROL RULES
+  # ============================================================================
+
+  # CWE-23: Relative Path Traversal
+  - id: path-traversal-dotdot-check
+    pattern: $PATH.includes('..')
+    message: "Path traversal check (ensure rejection). CWE-23"
+    metadata:
+      cwe: "CWE-23"
+      owasp: "A01:2021"
+    severity: INFO
+    languages: [javascript, typescript]
+
+  # CWE-59: Symlink Following
+  - id: symlink-fs-realpath
+    pattern: fs.realpathSync($PATH)
+    message: "Symlink resolution (validate result). CWE-59"
+    metadata:
+      cwe: "CWE-59"
+      owasp: "A01:2021"
+    severity: INFO
+    languages: [javascript, typescript]
+
+  - id: symlink-fs-lstat
+    pattern: fs.lstatSync($PATH)
+    message: "lstat for symlink check. CWE-59"
+    metadata:
+      cwe: "CWE-59"
+      owasp: "A01:2021"
+    severity: INFO
+    languages: [javascript, typescript]
+
+  # CWE-219: Sensitive File Under Web Root
+  - id: sensitive-file-webroot
+    pattern: app.use(express.static($PATH))
+    message: "Static files (exclude .env, secrets). CWE-219"
+    metadata:
+      cwe: "CWE-219"
+      owasp: "A01:2021"
+    severity: INFO
+    languages: [javascript, typescript]
+
+  # CWE-284: Improper Access Control (Firebase)
+  - id: firebase-no-auth-setdoc
+    patterns:
+      - pattern: setDoc(doc($DB, $COLL, $ID), $DATA)
+      - pattern-not-inside: |
+          if ($AUTH.currentUser) { ... }
+    message: "Firestore setDoc without auth check. CWE-284"
+    metadata:
+      cwe: "CWE-284"
+      owasp: "A01:2021"
+    severity: WARNING
+    languages: [javascript, typescript]
+
+  - id: firebase-no-auth-deletedoc
+    patterns:
+      - pattern: deleteDoc(doc($DB, $COLL, $ID))
+      - pattern-not-inside: |
+          if ($AUTH.currentUser) { ... }
+    message: "Firestore deleteDoc without auth check. CWE-284"
+    metadata:
+      cwe: "CWE-284"
+      owasp: "A01:2021"
+    severity: WARNING
+    languages: [javascript, typescript]
+
+  # CWE-285: Improper Authorization
+  - id: improper-auth-admin-string
+    pattern: $USER.role === 'admin'
+    message: "Client-side admin role check. CWE-285"
+    metadata:
+      cwe: "CWE-285"
+      owasp: "A01:2021"
+    severity: WARNING
+    languages: [javascript, typescript]
+
+  - id: improper-auth-moderator-string
+    pattern: $USER.role === 'moderator'
+    message: "Client-side moderator role check. CWE-285"
+    metadata:
+      cwe: "CWE-285"
+      owasp: "A01:2021"
+    severity: WARNING
+    languages: [javascript, typescript]
+
+  # CWE-377: Insecure Temporary File
+  - id: insecure-temp-os-tmpdir
+    pattern: os.tmpdir()
+    message: "Temp directory (use secure permissions). CWE-377"
+    metadata:
+      cwe: "CWE-377"
+      owasp: "A01:2021"
+    severity: INFO
+    languages: [javascript, typescript]
+
+
+  # CWE-425: Forced Browsing
+  - id: forced-browsing-admin-route
+    pattern: app.get('/admin', ...)
+    message: "Admin route (ensure auth middleware). CWE-425"
+    metadata:
+      cwe: "CWE-425"
+      owasp: "A01:2021"
+    severity: INFO
+    languages: [javascript, typescript]
+
+  - id: forced-browsing-admin-path
+    pattern: app.get('/admin/...', ...)
+    message: "Admin path (ensure auth middleware). CWE-425"
+    metadata:
+      cwe: "CWE-425"
+      owasp: "A01:2021"
+    severity: INFO
+    languages: [javascript, typescript]
+
+  # CWE-548: Directory Listing
+  - id: directory-listing-serve-index
+    pattern: serveIndex($PATH)
+    message: "Directory listing enabled. CWE-548"
+    metadata:
+      cwe: "CWE-548"
+      owasp: "A01:2021"
+    severity: WARNING
+    languages: [javascript, typescript]
+
+  # CWE-552: Files Accessible to External Parties
+  - id: files-accessible-upload-dir
+    pattern: app.use('/uploads', express.static($PATH))
+    message: "Uploads directory exposed. CWE-552"
+    metadata:
+      cwe: "CWE-552"
+      owasp: "A01:2021"
+    severity: WARNING
+    languages: [javascript, typescript]
+
+  - id: files-accessible-files-dir
+    pattern: app.use('/files', express.static($PATH))
+    message: "Files directory exposed. CWE-552"
+    metadata:
+      cwe: "CWE-552"
+      owasp: "A01:2021"
+    severity: WARNING
+    languages: [javascript, typescript]
+
+  # CWE-668: Resource Exposure
+  - id: resource-exposure-cors-credentials
+    pattern: "cors({..., credentials: true, origin: '*', ...})"
+    message: "CORS credentials with wildcard. CWE-668"
+    metadata:
+      cwe: "CWE-668"
+      owasp: "A01:2021"
+    severity: ERROR
+    languages: [javascript, typescript]
+
+  - id: resource-exposure-debug-endpoint
+    pattern: app.get('/debug', ...)
+    message: "Debug endpoint exposed. CWE-668"
+    metadata:
+      cwe: "CWE-668"
+      owasp: "A01:2021"
+    severity: WARNING
+    languages: [javascript, typescript]
+
+  - id: resource-exposure-metrics-endpoint
+    pattern: app.get('/metrics', ...)
+    message: "Metrics endpoint (ensure auth). CWE-668"
+    metadata:
+      cwe: "CWE-668"
+      owasp: "A01:2021"
+    severity: INFO
+    languages: [javascript, typescript]
+
+  # CWE-862: Missing Authorization (more patterns)
+  - id: missing-auth-firebase-batch
+    pattern: writeBatch($DB)
+    message: "Firestore batch (ensure auth). CWE-862"
+    metadata:
+      cwe: "CWE-862"
+      owasp: "A01:2021"
+    severity: INFO
+    languages: [javascript, typescript]
+
+  # More localStorage/sessionStorage patterns
+  - id: localstorage-session
+    pattern: localStorage.setItem('session', $VALUE)
+    message: "Session in localStorage. CWE-922"
+    metadata:
+      cwe: "CWE-922"
+      owasp: "A01:2021"
+    severity: ERROR
+    languages: [javascript, typescript]
+
+  - id: localstorage-apikey
+    pattern: localStorage.setItem('apiKey', $VALUE)
+    message: "API key in localStorage. CWE-922"
+    metadata:
+      cwe: "CWE-922"
+      owasp: "A01:2021"
+    severity: ERROR
+    languages: [javascript, typescript]
+
+  - id: localstorage-credentials
+    pattern: localStorage.setItem('credentials', $VALUE)
+    message: "Credentials in localStorage. CWE-922"
+    metadata:
+      cwe: "CWE-922"
+      owasp: "A01:2021"
+    severity: ERROR
+    languages: [javascript, typescript]
+
+  - id: localstorage-refresh-token
+    pattern: localStorage.setItem('refreshToken', $VALUE)
+    message: "Refresh token in localStorage. CWE-922"
+    metadata:
+      cwe: "CWE-922"
+      owasp: "A01:2021"
+    severity: ERROR
+    languages: [javascript, typescript]
+
+  - id: localstorage-access-token
+    pattern: localStorage.setItem('accessToken', $VALUE)
+    message: "Access token in localStorage. CWE-922"
+    metadata:
+      cwe: "CWE-922"
+      owasp: "A01:2021"
+    severity: ERROR
+    languages: [javascript, typescript]
+
+  - id: sessionstorage-authtoken
+    pattern: sessionStorage.setItem('authToken', $VALUE)
+    message: "Auth token in sessionStorage. CWE-922"
+    metadata:
+      cwe: "CWE-922"
+      owasp: "A01:2021"
+    severity: WARNING
+    languages: [javascript, typescript]
+
+  - id: sessionstorage-jwt
+    pattern: sessionStorage.setItem('jwt', $VALUE)
+    message: "JWT in sessionStorage. CWE-922"
+    metadata:
+      cwe: "CWE-922"
+      owasp: "A01:2021"
+    severity: WARNING
+    languages: [javascript, typescript]
+
+  - id: sessionstorage-password
+    pattern: sessionStorage.setItem('password', $VALUE)
+    message: "Password in sessionStorage. CWE-922"
+    metadata:
+      cwe: "CWE-922"
+      owasp: "A01:2021"
+    severity: ERROR
+    languages: [javascript, typescript]

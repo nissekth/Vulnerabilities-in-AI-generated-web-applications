@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>User Profile</title>
+  <link rel="stylesheet" href="styles.css">
+
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+</head>
+
+<body>
+
+<h2>User Profile</h2>
+
+<div id="profile-container">Loading...</div>
+
+<h3>User’s Posts</h3>
+<div id="profile-posts"></div>
+
+<h3>Gallery</h3>
+<div id="profile-gallery"></div>
+
+<script>
+const firebaseConfig = {
+  // same config as app.js
+};
+firebase.initializeApp(firebaseConfig);
+
+const auth = firebase.auth();
+const db = firebase.firestore();
+const storage = firebase.storage();
+
+const params = new URLSearchParams(location.search);
+const userId = params.get("uid");
+
+let viewer = null;
+let viewerDoc = null;
+let isFriend = false;
+
+auth.onAuthStateChanged(async (u) => {
+  viewer = u || null;
+  if (u) {
+    const snap = await db.collection("users").doc(u.uid).get();
+    if (snap.exists) viewerDoc = snap.data();
+
+    // check if viewer is friend of profile user
+    const f = await db.collection("users")
+      .doc(userId)
+      .collection("friends")
+      .doc(u.uid)
+      .get();
+    isFriend = f.exists;
+  }
+
+  loadProfile();
+  loadPosts();
+  loadGallery();
+});
+
+async function loadProfile() {
+  const container = document.getElementById("profile-container");
+  const doc = await db.collection("users").doc(userId).get();
+
+  if (!doc.exists) {
+    container.textContent = "User not found.";
+    return;
+  }
+
+  const u = doc.data();
+
+  container.innerHTML = `
+    <div class="card profile-card">
+      <div class="profile-banner ${u.banner}"></div>
+      <div class="profile-card-body">
+        <img src="${u.photoURL || "https://via.placeholder.com/64"}" class="profile-photo">
+        <h3>${u.displayName}</h3>
+        <p>${u.about || ""}</p>
+        <p>${u.fullName || ""} · ${u.age || ""}</p>
+        <p>${u.city || ""} ${u.country || ""}</p>
+
+        <button id="add-friend-btn">Add Friend</button>
+      </div>
+    </div>
+  `;
+
+  document.getElementById("add-friend-btn").onclick = addFriend;
+}
+
+async function addFriend() {
+  if (!viewer) {
+    alert("Please log in first.");
+    return;
+  }
+
+  const myRef = db.collection("users").doc(viewer.uid).collection("friends").doc(userId);
+  const theirRef = db.collection("users").doc(userId).collection("friends").doc(viewer.uid);
+
+  await myRef.set({ createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+  await theirRef.set({ createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+
+  alert("Friend added!");
+}
+
+async function loadPosts() {
+  const container = document.getElementById("profile-posts");
+  container.innerHTML = "Loading posts...";
+
+  const snap = await db.collection("posts")
+    .where("authorId", "==", userId)
+    .orderBy("createdAt", "desc")
+    .get();
+
+  container.innerHTML = "";
+
+  snap.forEach((doc) => {
+    const p = doc.data();
+
+    // display logic
+    const allowed =
+      p.visibility === "public" ||
+      viewer?.uid === userId ||
+      isFriend ||
+      viewerDoc?.isAdmin ||
+      viewerDoc?.isOwner;
+
+    if (!allowed) return;
+
+    const div = document.createElement("div");
+    div.className = "card post";
+    div.innerHTML = `
+      <div class="post-meta">${p.authorName} · ${p.visibility}</div>
+      <p>${p.text}</p>
+      ${p.imageUrl ? `<img src="${p.imageUrl}" style="max-width:100%">` : ""}
+    `;
+    container.appendChild(div);
+  });
+}
+
+async function loadGallery() {
+  const container = document.getElementById("profile-gallery");
+  container.innerHTML = "Loading gallery...";
+
+  const snap = await db.collection("posts")
+    .where("authorId", "==", userId)
+    .get();
+
+  container.innerHTML = '<div class="gallery-grid"></div>';
+  const grid = container.firstChild;
+
+  snap.forEach((doc) => {
+    const p = doc.data();
+
+    if (!p.imageUrl) return;
+
+    const allowed =
+      p.visibility === "public" ||
+      viewer?.uid === userId ||
+      isFriend ||
+      viewerDoc?.isAdmin ||
+      viewerDoc?.isOwner;
+
+    if (!allowed) return;
+
+    const img = document.createElement("img");
+    img.src = p.imageUrl;
+    img.onclick = () => window.open(p.imageUrl);
+    grid.appendChild(img);
+  });
+}
+</script>
+
+</body>
+</html>
+

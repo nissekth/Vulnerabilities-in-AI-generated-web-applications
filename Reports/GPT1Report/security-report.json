@@ -1,0 +1,698 @@
+{
+  "metadata": {
+    "scanDate": "2025-12-15T22:16:36.831Z",
+    "duration": "155s",
+    "target": "https://gpt-1-bec24.firebaseapp.com",
+    "appName": "Social Media App",
+    "projectId": "gpt-1-bec24",
+    "scope": "OWASP Top 10:2021 A01-A03"
+  },
+  "summary": {
+    "total": 23,
+    "bySeverity": {
+      "CRITICAL": 0,
+      "HIGH": 14,
+      "MEDIUM": 8,
+      "LOW": 1,
+      "INFO": 0
+    },
+    "byCategory": {
+      "A01": 16,
+      "A02": 4,
+      "A03": 3
+    },
+    "byTool": {
+      "firebase-emulator": 6,
+      "static-analysis": 3,
+      "semgrep": 11,
+      "crypto-scanner": 3
+    },
+    "riskScore": 87,
+    "riskLevel": "CRITICAL",
+    "deduplication": {
+      "originalCount": 29,
+      "deduplicatedCount": 23,
+      "duplicatesRemoved": 6,
+      "reductionPercent": 21
+    }
+  },
+  "findings": [
+    {
+      "id": "VULN-001",
+      "category": "A01",
+      "cwe": "CWE-200",
+      "cweName": "Exposure of Sensitive Information",
+      "severity": "HIGH",
+      "title": "User Enumeration via Collection Listing",
+      "description": "Unauthenticated users can list/enumerate user documents, exposing user data.",
+      "evidence": "Unauthenticated list query on /users succeeded",
+      "remediation": "Prevent listing: require authentication and consider restricting list queries",
+      "tool": "firebase-emulator",
+      "timestamp": "2025-12-15T22:14:12.584Z",
+      "tools": [
+        "firebase-emulator"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "a1ba02402a01e8b1",
+      "_fingerprintSource": "cwe:CWE-200||cat:A01||title:user enumeration via collection listing"
+    },
+    {
+      "id": "VULN-002",
+      "category": "A01",
+      "cwe": "CWE-284",
+      "cweName": "Improper Access Control",
+      "severity": "HIGH",
+      "title": "Unrestricted Read Access",
+      "description": "Rule allows anyone to read data without authentication",
+      "evidence": {
+        "rule": "allow read: if true"
+      },
+      "remediation": "Change to: allow read: if request.auth != null",
+      "tool": "static-analysis",
+      "tools": [
+        "static-analysis"
+      ],
+      "duplicateCount": 5,
+      "mergedFrom": [
+        {
+          "id": "VULN-001",
+          "tool": "static-analysis",
+          "severity": "HIGH"
+        },
+        {
+          "id": "VULN-002",
+          "tool": "static-analysis",
+          "severity": "HIGH"
+        },
+        {
+          "id": "VULN-003",
+          "tool": "static-analysis",
+          "severity": "HIGH"
+        },
+        {
+          "id": "VULN-004",
+          "tool": "static-analysis",
+          "severity": "HIGH"
+        },
+        {
+          "id": "VULN-005",
+          "tool": "static-analysis",
+          "severity": "HIGH"
+        }
+      ],
+      "timestamp": "2025-12-15T22:14:02.068Z",
+      "confirmed": false,
+      "_fingerprint": "c840b8d7ff27a8ee",
+      "_fingerprintSource": "cwe:CWE-284||cat:A01||loc:rule:allow read: if true||vuln:rule:allow read: if true||title:unrestricted read access"
+    },
+    {
+      "id": "VULN-003",
+      "category": "A01",
+      "cwe": "CWE-284",
+      "cweName": "Improper Access Control",
+      "severity": "HIGH",
+      "title": "Unauthenticated Read Access to User Data",
+      "description": "Firestore rules allow unauthenticated users to read user documents. This exposes potentially sensitive user information to anyone.",
+      "evidence": "Unauthenticated read on /users/{userId} succeeded",
+      "remediation": "Add authentication check: allow read: if request.auth != null",
+      "tool": "firebase-emulator",
+      "timestamp": "2025-12-15T22:14:12.582Z",
+      "tools": [
+        "firebase-emulator"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "cc5cee82832a3308",
+      "_fingerprintSource": "cwe:CWE-284||cat:A01||title:unauthenticated read access to user data"
+    },
+    {
+      "id": "VULN-004",
+      "category": "A01",
+      "cwe": "CWE-639",
+      "cweName": "IDOR",
+      "severity": "HIGH",
+      "title": "IDOR Vulnerability on User Profiles",
+      "description": "Users can access other users' profiles by simply changing the document ID in the request.",
+      "evidence": "alice123 accessed bob456's profile by changing document ID",
+      "remediation": "Restrict reads to own profile: allow read: if request.auth.uid == userId",
+      "tool": "firebase-emulator",
+      "timestamp": "2025-12-15T22:14:12.584Z",
+      "tools": [
+        "firebase-emulator"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "8116391c3befc481",
+      "_fingerprintSource": "cwe:CWE-639||cat:A01||title:idor vulnerability on user profiles"
+    },
+    {
+      "id": "VULN-005",
+      "category": "A01",
+      "cwe": "CWE-863",
+      "cweName": "Incorrect Authorization",
+      "severity": "HIGH",
+      "title": "Sender ID Spoofing in Messages",
+      "description": "Users can create messages with a senderId that doesn't match their authentication.",
+      "evidence": "alice123 created message with senderId: bob456",
+      "remediation": "Validate sender: allow create: if request.resource.data.senderId == request.auth.uid",
+      "tool": "firebase-emulator",
+      "timestamp": "2025-12-15T22:14:12.584Z",
+      "tools": [
+        "firebase-emulator"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "f35ea332a975c800",
+      "_fingerprintSource": "cwe:CWE-863||cat:A01||title:sender id spoofing in messages"
+    },
+    {
+      "id": "VULN-006",
+      "category": "A01",
+      "cwe": "CWE-863",
+      "cweName": "Incorrect Authorization",
+      "severity": "HIGH",
+      "title": "client-side-isadmin",
+      "description": "Client-side admin check. CWE-863",
+      "evidence": {
+        "file": "/home/nillof/Exjobb/GPT1/my-social-app/public/app.js",
+        "line": 167,
+        "endLine": 167,
+        "code": "if (state.userProfile?.isAdmin) {"
+      },
+      "remediation": null,
+      "tool": "semgrep",
+      "timestamp": "2025-12-15T22:14:18.734Z",
+      "tools": [
+        "semgrep"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "5d7474c02a15e43a",
+      "_fingerprintSource": "cwe:CWE-863||cat:A01||loc:file:/home/nillof/Exjobb/GPT1/my-social-app/public/app.js|line:167||vuln:code:if (state.userprofile?.isadmin) {||title:client-side-isadmin"
+    },
+    {
+      "id": "VULN-007",
+      "category": "A01",
+      "cwe": "CWE-863",
+      "cweName": "Incorrect Authorization",
+      "severity": "HIGH",
+      "title": "client-side-isadmin",
+      "description": "Client-side admin check. CWE-863",
+      "evidence": {
+        "file": "/home/nillof/Exjobb/GPT1/my-social-app/public/app.js",
+        "line": 472
+      },
+      "remediation": null,
+      "tool": "semgrep",
+      "tools": [
+        "semgrep"
+      ],
+      "duplicateCount": 2,
+      "mergedFrom": [
+        {
+          "id": "VULN-018",
+          "tool": "semgrep",
+          "severity": "HIGH"
+        },
+        {
+          "id": "VULN-021",
+          "tool": "semgrep",
+          "severity": "HIGH"
+        }
+      ],
+      "timestamp": "2025-12-15T22:14:18.735Z",
+      "confirmed": false,
+      "_fingerprint": "2b86f02a33abb087",
+      "_fingerprintSource": "cwe:CWE-863||cat:A01||loc:file:/home/nillof/Exjobb/GPT1/my-social-app/public/app.js|line:472||vuln:code:const isadmin = !!state.userprofile?.isadmin;||title:client-side-isadmin"
+    },
+    {
+      "id": "VULN-008",
+      "category": "A01",
+      "cwe": "CWE-863",
+      "cweName": "Incorrect Authorization",
+      "severity": "HIGH",
+      "title": "client-side-isadmin",
+      "description": "Client-side admin check. CWE-863",
+      "evidence": {
+        "file": "/home/nillof/Exjobb/GPT1/my-social-app/public/app.js",
+        "line": 522,
+        "endLine": 522,
+        "code": "(state.userProfile?.isAdmin || state.user.uid === post.authorId) ? h(\"button\", {"
+      },
+      "remediation": null,
+      "tool": "semgrep",
+      "timestamp": "2025-12-15T22:14:18.735Z",
+      "tools": [
+        "semgrep"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "b6bb2c179ff47347",
+      "_fingerprintSource": "cwe:CWE-863||cat:A01||loc:file:/home/nillof/Exjobb/GPT1/my-social-app/public/app.js|line:522||vuln:code:(state.userprofile?.isadmin || state.user.uid === post.authorid) ? h(button, {||title:client-side-isadmin"
+    },
+    {
+      "id": "VULN-009",
+      "category": "A01",
+      "cwe": "CWE-863",
+      "cweName": "Incorrect Authorization",
+      "severity": "HIGH",
+      "title": "client-side-isadmin",
+      "description": "Client-side admin check. CWE-863",
+      "evidence": {
+        "file": "/home/nillof/Exjobb/GPT1/my-social-app/public/app.js",
+        "line": 1086,
+        "endLine": 1086,
+        "code": "user.isAdmin ? h(\"span\", { class: \"badge\" }, \"Admin\") : null"
+      },
+      "remediation": null,
+      "tool": "semgrep",
+      "timestamp": "2025-12-15T22:14:18.735Z",
+      "tools": [
+        "semgrep"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "1d645c536df9ea27",
+      "_fingerprintSource": "cwe:CWE-863||cat:A01||loc:file:/home/nillof/Exjobb/GPT1/my-social-app/public/app.js|line:1086||vuln:code:user.isadmin ? h(span, { class: badge }, admin) : null||title:client-side-isadmin"
+    },
+    {
+      "id": "VULN-010",
+      "category": "A01",
+      "cwe": "CWE-863",
+      "cweName": "Incorrect Authorization",
+      "severity": "HIGH",
+      "title": "client-side-isadmin",
+      "description": "Client-side admin check. CWE-863",
+      "evidence": {
+        "file": "/home/nillof/Exjobb/GPT1/my-social-app/public/app.js",
+        "line": 1261,
+        "endLine": 1261,
+        "code": "if (!state.userProfile?.isAdmin) {"
+      },
+      "remediation": null,
+      "tool": "semgrep",
+      "timestamp": "2025-12-15T22:14:18.735Z",
+      "tools": [
+        "semgrep"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "d92b857bc474df3d",
+      "_fingerprintSource": "cwe:CWE-863||cat:A01||loc:file:/home/nillof/Exjobb/GPT1/my-social-app/public/app.js|line:1261||vuln:code:if (!state.userprofile?.isadmin) {||title:client-side-isadmin"
+    },
+    {
+      "id": "VULN-011",
+      "category": "A01",
+      "cwe": "CWE-863",
+      "cweName": "Incorrect Authorization",
+      "severity": "HIGH",
+      "title": "client-side-isadmin",
+      "description": "Client-side admin check. CWE-863",
+      "evidence": {
+        "file": "/home/nillof/Exjobb/GPT1/my-social-app/public/app.js",
+        "line": 1298,
+        "endLine": 1298,
+        "code": "u.isAdmin ? \"Admin\" : \"User\","
+      },
+      "remediation": null,
+      "tool": "semgrep",
+      "timestamp": "2025-12-15T22:14:18.735Z",
+      "tools": [
+        "semgrep"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "c68c34c958b51a77",
+      "_fingerprintSource": "cwe:CWE-863||cat:A01||loc:file:/home/nillof/Exjobb/GPT1/my-social-app/public/app.js|line:1298||vuln:code:u.isadmin ? admin : user,||title:client-side-isadmin"
+    },
+    {
+      "id": "VULN-012",
+      "category": "A02",
+      "cwe": "CWE-798",
+      "cweName": "Unknown",
+      "severity": "HIGH",
+      "title": "Hardcoded Google API Key found",
+      "description": "Found potential Google API Key in https://gpt-1-bec24.firebaseapp.com/app.js",
+      "evidence": {
+        "pattern": "Google API Key",
+        "source": "https://gpt-1-bec24.firebaseapp.com/app.js",
+        "redactedMatch": "AIzaSyDLZ2...BEItw"
+      },
+      "remediation": null,
+      "tool": "crypto-scanner",
+      "timestamp": "2025-12-15T22:16:09.107Z",
+      "tools": [
+        "crypto-scanner"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "3d0538ce25f56f4c",
+      "_fingerprintSource": "cwe:CWE-798||cat:A02||title:hardcoded google api key found"
+    },
+    {
+      "id": "VULN-013",
+      "category": "A02",
+      "cwe": "CWE-798",
+      "cweName": "Unknown",
+      "severity": "HIGH",
+      "title": "Hardcoded Generic Password found",
+      "description": "Found potential Generic Password in https://gpt-1-bec24.firebaseapp.com/app.js",
+      "evidence": {
+        "pattern": "Generic Password",
+        "source": "https://gpt-1-bec24.firebaseapp.com/app.js",
+        "redactedMatch": "password:\"...ert(\""
+      },
+      "remediation": null,
+      "tool": "crypto-scanner",
+      "timestamp": "2025-12-15T22:16:09.107Z",
+      "tools": [
+        "crypto-scanner"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "8fac7ab7f44109dd",
+      "_fingerprintSource": "cwe:CWE-798||cat:A02||title:hardcoded generic password found"
+    },
+    {
+      "id": "VULN-014",
+      "category": "A03",
+      "cwe": "CWE-79",
+      "cweName": "Cross-site Scripting (XSS)",
+      "severity": "HIGH",
+      "title": "dom-xss-innerhtml",
+      "description": "innerHTML XSS. CWE-79",
+      "evidence": {
+        "file": "/home/nillof/Exjobb/GPT1/my-social-app/public/app.js",
+        "line": 76,
+        "endLine": 76,
+        "code": "el.innerHTML = v;"
+      },
+      "remediation": null,
+      "tool": "semgrep",
+      "timestamp": "2025-12-15T22:14:18.733Z",
+      "tools": [
+        "semgrep"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "9dec47fea3028fb3",
+      "_fingerprintSource": "cwe:CWE-79||cat:A03||loc:file:/home/nillof/Exjobb/GPT1/my-social-app/public/app.js|line:76||vuln:code:el.innerhtml = v;||title:dom xss"
+    },
+    {
+      "id": "VULN-015",
+      "category": "A01",
+      "cwe": "CWE-284",
+      "cweName": "Improper Access Control",
+      "severity": "MEDIUM",
+      "title": "Unauthenticated Read Access to Posts",
+      "description": "Posts are readable without authentication. Consider if this is intentional for public content.",
+      "evidence": "Unauthenticated read on /posts/{postId} succeeded",
+      "remediation": "If posts should be private, add: allow read: if request.auth != null",
+      "tool": "firebase-emulator",
+      "timestamp": "2025-12-15T22:14:12.584Z",
+      "tools": [
+        "firebase-emulator"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "f5c167243df79b33",
+      "_fingerprintSource": "cwe:CWE-284||cat:A01||title:unauthenticated read access to posts"
+    },
+    {
+      "id": "VULN-016",
+      "category": "A01",
+      "cwe": "CWE-284",
+      "cweName": "Improper Access Control",
+      "severity": "MEDIUM",
+      "title": "firebase-no-auth-setdoc",
+      "description": "Firestore setDoc without auth check. CWE-284",
+      "evidence": {
+        "file": "/home/nillof/Exjobb/GPT1/my-social-app/public/app.js",
+        "line": 334,
+        "endLine": 334,
+        "code": "await setDoc(doc(db, \"users\", uid), userDoc);"
+      },
+      "remediation": null,
+      "tool": "semgrep",
+      "timestamp": "2025-12-15T22:14:18.734Z",
+      "tools": [
+        "semgrep"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "e43344f16684d5b9",
+      "_fingerprintSource": "cwe:CWE-284||cat:A01||loc:file:/home/nillof/Exjobb/GPT1/my-social-app/public/app.js|line:334||vuln:code:await setdoc(doc(db, users, uid), userdoc);||title:firebase-no-auth-setdoc"
+    },
+    {
+      "id": "VULN-017",
+      "category": "A01",
+      "cwe": "CWE-284",
+      "cweName": "Improper Access Control",
+      "severity": "MEDIUM",
+      "title": "firebase-no-auth-deletedoc",
+      "description": "Firestore deleteDoc without auth check. CWE-284",
+      "evidence": {
+        "file": "/home/nillof/Exjobb/GPT1/my-social-app/public/app.js",
+        "line": 936,
+        "endLine": 936,
+        "code": "await deleteDoc(doc(db, \"users\", state.user.uid));"
+      },
+      "remediation": null,
+      "tool": "semgrep",
+      "timestamp": "2025-12-15T22:14:18.735Z",
+      "tools": [
+        "semgrep"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "35796e9978aae5b2",
+      "_fingerprintSource": "cwe:CWE-284||cat:A01||loc:file:/home/nillof/Exjobb/GPT1/my-social-app/public/app.js|line:936||vuln:code:await deletedoc(doc(db, users, state.user.uid));||title:firebase-no-auth-deletedoc"
+    },
+    {
+      "id": "VULN-018",
+      "category": "A01",
+      "cwe": "CWE-284",
+      "cweName": "Improper Access Control",
+      "severity": "MEDIUM",
+      "title": "firebase-no-auth-deletedoc",
+      "description": "Firestore deleteDoc without auth check. CWE-284",
+      "evidence": {
+        "file": "/home/nillof/Exjobb/GPT1/my-social-app/public/app.js",
+        "line": 1334,
+        "endLine": 1334,
+        "code": "await deleteDoc(doc(db, \"users\", uid));"
+      },
+      "remediation": null,
+      "tool": "semgrep",
+      "timestamp": "2025-12-15T22:14:18.735Z",
+      "tools": [
+        "semgrep"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "d4c50580cde19522",
+      "_fingerprintSource": "cwe:CWE-284||cat:A01||loc:file:/home/nillof/Exjobb/GPT1/my-social-app/public/app.js|line:1334||vuln:code:await deletedoc(doc(db, users, uid));||title:firebase-no-auth-deletedoc"
+    },
+    {
+      "id": "VULN-019",
+      "category": "A01",
+      "cwe": "CWE-668",
+      "cweName": "Unknown",
+      "severity": "MEDIUM",
+      "title": "Draft Content Exposed to Other Users",
+      "description": "Unpublished/draft content is accessible to users other than the author.",
+      "evidence": "bob456 accessed alice123's draft posts",
+      "remediation": "Add visibility check: allow read: if resource.data.status == \"published\" || request.auth.uid == resource.data.userId",
+      "tool": "firebase-emulator",
+      "timestamp": "2025-12-15T22:14:12.585Z",
+      "tools": [
+        "firebase-emulator"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "a20995916ac311eb",
+      "_fingerprintSource": "cwe:CWE-668||cat:A01||title:draft content exposed to other users"
+    },
+    {
+      "id": "VULN-020",
+      "category": "A02",
+      "cwe": "CWE-311",
+      "cweName": "Missing Encryption of Sensitive Data",
+      "severity": "MEDIUM",
+      "title": "Public Storage Access",
+      "description": "Storage files are publicly readable. Consider if this is necessary.",
+      "evidence": {
+        "rule": "allow read: if true"
+      },
+      "remediation": "Consider: allow read: if request.auth != null",
+      "tool": "static-analysis",
+      "timestamp": "2025-12-15T22:14:02.070Z",
+      "tools": [
+        "static-analysis"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "e49ef171d02d0e12",
+      "_fingerprintSource": "cwe:CWE-311||cat:A02||loc:rule:allow read: if true||vuln:rule:allow read: if true||title:public storage access"
+    },
+    {
+      "id": "VULN-021",
+      "category": "A02",
+      "cwe": "CWE-330",
+      "cweName": "Use of Insufficiently Random Values",
+      "severity": "MEDIUM",
+      "title": "Weak Random detected",
+      "description": "Found Weak Random in https://gpt-1-bec24.firebaseapp.com/app.js. This may indicate weak cryptographic practices.",
+      "evidence": {
+        "pattern": "Weak Random",
+        "source": "https://gpt-1-bec24.firebaseapp.com/app.js",
+        "matchCount": 1
+      },
+      "remediation": null,
+      "tool": "crypto-scanner",
+      "timestamp": "2025-12-15T22:16:09.107Z",
+      "tools": [
+        "crypto-scanner"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "c9c51dcd58f3ba92",
+      "_fingerprintSource": "cwe:CWE-330||cat:A02||title:weak random detected"
+    },
+    {
+      "id": "VULN-022",
+      "category": "A03",
+      "cwe": "CWE-434",
+      "cweName": "Unrestricted Upload of File with Dangerous Type",
+      "severity": "MEDIUM",
+      "title": "Missing File Type Validation in Storage Rules",
+      "description": "Storage rules do not validate file content type",
+      "evidence": null,
+      "remediation": "Add: && request.resource.contentType.matches('image/.*')",
+      "tool": "static-analysis",
+      "timestamp": "2025-12-15T22:14:02.070Z",
+      "tools": [
+        "static-analysis"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "7a89ddfe7772272a",
+      "_fingerprintSource": "cwe:CWE-434||cat:A03||title:missing file type validation in storage rules"
+    },
+    {
+      "id": "VULN-023",
+      "category": "A03",
+      "cwe": "CWE-434",
+      "cweName": "Unrestricted Upload of File with Dangerous Type",
+      "severity": "LOW",
+      "title": "firebase-upload",
+      "description": "File upload. CWE-434",
+      "evidence": {
+        "file": "/home/nillof/Exjobb/GPT1/my-social-app/public/app.js",
+        "line": 431
+      },
+      "remediation": null,
+      "tool": "semgrep",
+      "tools": [
+        "semgrep"
+      ],
+      "duplicateCount": 2,
+      "mergedFrom": [
+        {
+          "id": "VULN-017",
+          "tool": "semgrep",
+          "severity": "LOW"
+        },
+        {
+          "id": "VULN-020",
+          "tool": "semgrep",
+          "severity": "LOW"
+        }
+      ],
+      "timestamp": "2025-12-15T22:14:18.735Z",
+      "confirmed": false,
+      "_fingerprint": "e7a460ac51769d3d",
+      "_fingerprintSource": "cwe:CWE-434||cat:A03||loc:file:/home/nillof/Exjobb/GPT1/my-social-app/public/app.js|line:431||vuln:code:await uploadbytes(storageref, file);||title:firebase-upload"
+    }
+  ],
+  "cweCoverage": {
+    "A01_BrokenAccessControl": [
+      "CWE-22",
+      "CWE-23",
+      "CWE-200",
+      "CWE-201",
+      "CWE-219",
+      "CWE-264",
+      "CWE-275",
+      "CWE-276",
+      "CWE-284",
+      "CWE-285",
+      "CWE-352",
+      "CWE-359",
+      "CWE-425",
+      "CWE-441",
+      "CWE-497",
+      "CWE-538",
+      "CWE-540",
+      "CWE-548",
+      "CWE-552",
+      "CWE-566",
+      "CWE-601",
+      "CWE-639",
+      "CWE-651",
+      "CWE-668",
+      "CWE-706",
+      "CWE-862",
+      "CWE-863",
+      "CWE-913",
+      "CWE-922",
+      "CWE-1275"
+    ],
+    "A02_CryptographicFailures": [
+      "CWE-261",
+      "CWE-296",
+      "CWE-310",
+      "CWE-319",
+      "CWE-321",
+      "CWE-322",
+      "CWE-323",
+      "CWE-324",
+      "CWE-325",
+      "CWE-326",
+      "CWE-327",
+      "CWE-328",
+      "CWE-329",
+      "CWE-330",
+      "CWE-331",
+      "CWE-335",
+      "CWE-336",
+      "CWE-337",
+      "CWE-338",
+      "CWE-340",
+      "CWE-347",
+      "CWE-523",
+      "CWE-757",
+      "CWE-759",
+      "CWE-760",
+      "CWE-780",
+      "CWE-818",
+      "CWE-916"
+    ],
+    "A03_Injection": [
+      "CWE-20",
+      "CWE-74",
+      "CWE-75",
+      "CWE-77",
+      "CWE-78",
+      "CWE-79",
+      "CWE-80",
+      "CWE-83",
+      "CWE-87",
+      "CWE-88",
+      "CWE-89",
+      "CWE-90",
+      "CWE-91",
+      "CWE-93",
+      "CWE-94",
+      "CWE-95",
+      "CWE-96",
+      "CWE-97",
+      "CWE-98",
+      "CWE-99",
+      "CWE-113",
+      "CWE-116",
+      "CWE-138",
+      "CWE-184",
+      "CWE-470",
+      "CWE-471",
+      "CWE-564",
+      "CWE-610",
+      "CWE-643",
+      "CWE-644",
+      "CWE-652",
+      "CWE-917",
+      "CWE-943"
+    ]
+  }
+}

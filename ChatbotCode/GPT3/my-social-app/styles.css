@@ -1,0 +1,181 @@
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: #f4f4f4;
+  color: #222;
+}
+
+body.theme-dark {
+  background: #111;
+  color: #eee;
+}
+
+.hidden {
+  display: none !important;
+}
+
+#main-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #0366d6;
+  color: #fff;
+  padding: 0.5rem 1rem;
+}
+
+#main-header nav button {
+  margin-right: 0.5rem;
+}
+
+.logo {
+  font-weight: bold;
+}
+
+#app-root {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+.card {
+  background: #fff;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+body.theme-dark .card {
+  background: #222;
+}
+
+.card.danger {
+  border: 1px solid #d33;
+}
+
+input, textarea, select, button {
+  display: block;
+  margin: 0.25rem 0;
+  padding: 0.35rem;
+  font-size: 0.95rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+button {
+  cursor: pointer;
+}
+
+.flex-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.flex-row input[type="file"] {
+  width: auto;
+}
+
+.error {
+  color: #d33;
+  font-size: 0.85rem;
+}
+
+.success {
+  color: #090;
+  font-size: 0.85rem;
+}
+
+.link-btn {
+  background: none;
+  border: none;
+  color: #0366d6;
+  text-decoration: underline;
+  padding: 0;
+  width: auto;
+}
+
+.profile-header {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.avatar-large {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #ddd;
+}
+
+.gallery {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.gallery img {
+  width: 120px;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.post {
+  border-bottom: 1px solid #ddd;
+  padding: 0.5rem 0;
+}
+
+.post-header {
+  display: flex;
+  justify-content: space-between;
+}
+
+.post-meta {
+  font-size: 0.8rem;
+  color: #666;
+}
+
+.post img {
+  max-width: 100%;
+  margin-top: 0.5rem;
+}
+
+.post-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.comment {
+  font-size: 0.85rem;
+  margin-left: 0.5rem;
+}
+
+.messages {
+  max-height: 300px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  padding: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.message {
+  margin-bottom: 0.25rem;
+}
+
+.message.me {
+  text-align: right;
+}
+
+#public-search-results,
+#friend-search-results,
+#friends-list,
+#friend-suggestions,
+#feed-container,
+#admin-users-list,
+#conversations-list {
+  margin-top: 0.5rem;
+}
+

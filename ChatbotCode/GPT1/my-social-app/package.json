@@ -1,0 +1,9 @@
+{
+  "scripts": {
+    "test": "jest --testEnvironment=node"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "testTimeout": 30000
+  }
+}

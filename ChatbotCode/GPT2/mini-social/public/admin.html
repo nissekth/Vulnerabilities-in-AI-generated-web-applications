@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Admin Login</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="styles.css" />
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+
+<h2>Admin Login</h2>
+
+<div class="card">
+  <input id="email" type="email" placeholder="Admin email">
+  <input id="password" type="password" placeholder="Password">
+  <button id="login-btn">Log in as Admin</button>
+
+  <p id="status"></p>
+</div>
+
+<script>
+// Use same firebaseConfig as app.js
+const firebaseConfig = {
+  // copy from Firebase console!
+};
+firebase.initializeApp(firebaseConfig);
+
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+document.getElementById("login-btn").addEventListener("click", async () => {
+  const email = email.value.trim();
+  const pw = password.value;
+
+  try {
+    const cred = await auth.signInWithEmailAndPassword(email, pw);
+    const doc = await db.collection("users").doc(cred.user.uid).get();
+
+    if (!doc.exists || !doc.data().isAdmin && !doc.data().isOwner) {
+      status.textContent = "Access denied. You are not an admin.";
+      await auth.signOut();
+      return;
+    }
+
+    status.textContent = "Success. Redirecting...";
+    window.location.href = "index.html#admin";
+  } catch (err) {
+    status.textContent = err.message;
+  }
+});
+</script>
+
+</body>
+</html>
+

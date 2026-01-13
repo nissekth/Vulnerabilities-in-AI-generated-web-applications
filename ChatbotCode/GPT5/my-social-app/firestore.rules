@@ -1,0 +1,91 @@
+// Firestore rules enforce:
+// - public profiles visible to everyone
+// - friends-only posts visible only if viewer is a friend
+// - admins/owner can read/write more broadly (via custom claims)
+// Note: Firestore cannot hide individual fields within a document; design separate docs if needed. :contentReference[oaicite:6]{index=6}
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() { return request.auth != null; }
+    function isOwner() { return signedIn() && request.auth.token.owner == true; }
+    function isAdmin() { return signedIn() && (request.auth.token.admin == true || request.auth.token.owner == true); }
+
+    function isFriend(userId) {
+      return signedIn() &&
+        exists(/databases/$(database)/documents/users/$(userId)/friends/$(request.auth.uid));
+    }
+
+    match /users/{uid} {
+      // Public profile data readable by anyone
+      allow read: if true;
+
+      // User can update own profile; admin/owner can update any
+      allow create: if signedIn() && request.auth.uid == uid;
+      allow update: if (signedIn() && request.auth.uid == uid) || isAdmin();
+      allow delete: if isAdmin();
+
+      match /friends/{friendUid} {
+        allow read: if (signedIn() && request.auth.uid == uid) || isAdmin();
+        allow write: if (signedIn() && request.auth.uid == uid) || isAdmin();
+      }
+
+      match /gallery/{photoId} {
+        // Gallery read: public for simplicity; you can make it friends-only by checking isFriend(uid).
+        allow read: if true;
+        allow write: if (signedIn() && request.auth.uid == uid) || isAdmin();
+      }
+    }
+
+    match /billing/{uid} {
+      allow read, write: if (signedIn() && request.auth.uid == uid) || isAdmin();
+    }
+
+    match /posts/{postId} {
+      allow create: if signedIn() && request.resource.data.authorUid == request.auth.uid
+        && request.resource.data.text.size() <= 280;
+
+      // Read:
+      // - public posts: everyone
+      // - friends posts: only friends (enforced)
+      allow read: if resource.data.visibility == "public"
+        || (resource.data.visibility == "friends" && isFriend(resource.data.authorUid))
+        || isAdmin();
+
+      allow update, delete: if (signedIn() && resource.data.authorUid == request.auth.uid) || isAdmin();
+
+      match /comments/{commentId} {
+        allow create: if signedIn();
+        allow read: if resource != null && (
+          get(/databases/$(database)/documents/posts/$(postId)).data.visibility == "public"
+          || isFriend(get(/databases/$(database)/documents/posts/$(postId)).data.authorUid)
+          || isAdmin()
+        );
+        allow delete: if isAdmin() || (signedIn() && resource.data.authorUid == request.auth.uid);
+      }
+
+      match /likes/{uid} {
+        allow read: if true;
+        allow write: if signedIn() && request.auth.uid == uid;
+        allow delete: if signedIn() && request.auth.uid == uid;
+      }
+    }
+
+    match /conversations/{cid} {
+      allow read, write: if signedIn() && request.auth.uid in resource.data.members;
+
+      match /messages/{mid} {
+        allow read, write: if signedIn()
+          && request.auth.uid in get(/databases/$(database)/documents/conversations/$(cid)).data.members;
+      }
+    }
+
+    match /referrals/{code} {
+      // No direct client writes; only Functions (Admin SDK bypasses rules).
+      allow read: if false;
+      allow write: if false;
+    }
+  }
+}
+

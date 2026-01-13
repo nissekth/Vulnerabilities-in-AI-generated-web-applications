@@ -1,0 +1,68 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+    
+    function isAdmin() {
+      return isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
+    }
+    
+    function isSiteOwner() {
+      return isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isOwner == true;
+    }
+    
+    // Users collection
+    match /users/{userId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && isOwner(userId);
+      allow update: if isOwner(userId) || isAdmin();
+      allow delete: if isOwner(userId) || isAdmin() || isSiteOwner();
+    }
+    
+    // Posts collection
+    match /posts/{postId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update: if isOwner(resource.data.authorId) || isAdmin();
+      allow delete: if isOwner(resource.data.authorId) || isAdmin();
+      
+      // Comments subcollection
+      match /comments/{commentId} {
+        allow read: if isSignedIn();
+        allow create: if isSignedIn();
+        allow delete: if isOwner(resource.data.authorId) || isAdmin();
+      }
+    }
+    
+    // Messages collection
+    match /messages/{conversationId} {
+      match /messages/{messageId} {
+        allow read: if isSignedIn() && 
+          (request.auth.uid in resource.data.keys() || 
+           request.auth.uid == resource.data.senderId || 
+           request.auth.uid == resource.data.receiverId);
+        allow create: if isSignedIn();
+      }
+    }
+    
+    // Referral codes
+    match /referralCodes/{code} {
+      allow read: if true;
+      allow create: if isSignedIn();
+      allow update: if isSignedIn();
+    }
+    
+    // Deny all other access
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

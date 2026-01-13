@@ -1,0 +1,2093 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Social Network</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        /* Theme Variables */
+        body.theme-light {
+            background-color: #f0f2f5;
+            color: #1c1e21;
+        }
+
+        body.theme-dark {
+            background-color: #18191a;
+            color: #e4e6eb;
+        }
+
+        body.theme-blue {
+            background-color: #e3f2fd;
+            color: #0d47a1;
+        }
+
+        /* Navigation */
+        .navbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .navbar h1 {
+            color: white;
+            font-size: 1.5rem;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .nav-links button {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .nav-links button:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        /* Container */
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        /* Pages */
+        .page {
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        /* Auth Forms */
+        .auth-container {
+            max-width: 400px;
+            margin: 4rem auto;
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        body.theme-dark .auth-container,
+        body.theme-dark .card,
+        body.theme-dark .post,
+        body.theme-dark .comment {
+            background: #242526;
+        }
+
+        .auth-container h2 {
+            margin-bottom: 1.5rem;
+            text-align: center;
+            color: #667eea;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+
+        body.theme-dark .form-group input,
+        body.theme-dark .form-group select,
+        body.theme-dark .form-group textarea {
+            background: #3a3b3c;
+            border-color: #3a3b3c;
+            color: #e4e6eb;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: auto;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 0.75rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: opacity 0.3s;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+        }
+
+        .link-btn {
+            display: block;
+            text-align: center;
+            margin-top: 1rem;
+            color: #667eea;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+
+        /* Welcome Page */
+        .welcome-hero {
+            text-align: center;
+            padding: 4rem 2rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+        }
+
+        .welcome-hero h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .welcome-hero p {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+        }
+
+        /* Feed */
+        .post-composer {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+
+        .post-composer textarea {
+            width: 100%;
+            padding: 1rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            resize: vertical;
+            min-height: 100px;
+            font-size: 1rem;
+        }
+
+        .post-composer-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+            align-items: center;
+        }
+
+        .post {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 1rem;
+        }
+
+        .post-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .post-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .post-avatar img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .post-author {
+            flex: 1;
+        }
+
+        .post-author h4 {
+            margin-bottom: 0.25rem;
+        }
+
+        .post-date {
+            font-size: 0.875rem;
+            color: #65676b;
+        }
+
+        .post-content {
+            margin-bottom: 1rem;
+            line-height: 1.5;
+        }
+
+        .post-image {
+            width: 100%;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+        }
+
+        .post-actions {
+            display: flex;
+            gap: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid #e4e6eb;
+        }
+
+        body.theme-dark .post-actions {
+            border-top-color: #3a3b3c;
+        }
+
+        .post-action-btn {
+            flex: 1;
+            padding: 0.5rem;
+            background: none;
+            border: none;
+            color: #65676b;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+
+        .post-action-btn:hover {
+            background: #f0f2f5;
+        }
+
+        body.theme-dark .post-action-btn:hover {
+            background: #3a3b3c;
+        }
+
+        .post-action-btn.liked {
+            color: #e4405f;
+        }
+
+        .comments-section {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid #e4e6eb;
+        }
+
+        body.theme-dark .comments-section {
+            border-top-color: #3a3b3c;
+        }
+
+        .comment {
+            background: #f0f2f5;
+            padding: 0.75rem;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+        }
+
+        body.theme-dark .comment {
+            background: #3a3b3c;
+        }
+
+        .comment-author {
+            font-weight: bold;
+            margin-bottom: 0.25rem;
+        }
+
+        .comment-input {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .comment-input input {
+            flex: 1;
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+        }
+
+        /* Profile */
+        .profile-banner {
+            height: 200px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px 10px 0 0;
+            position: relative;
+        }
+
+        .profile-banner.banner-sunset {
+            background: linear-gradient(135deg, #ff6b6b 0%, #feca57 100%);
+        }
+
+        .profile-banner.banner-ocean {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        .profile-banner.banner-forest {
+            background: linear-gradient(135deg, #0ba360 0%, #3cba92 100%);
+        }
+
+        .profile-info {
+            background: white;
+            padding: 2rem;
+            border-radius: 0 0 10px 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-top: -50px;
+            position: relative;
+        }
+
+        .profile-picture {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            border: 5px solid white;
+            margin: 0 auto;
+            display: block;
+            object-fit: cover;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .profile-details {
+            text-align: center;
+            margin-top: 1rem;
+        }
+
+        .profile-details h2 {
+            margin-bottom: 0.5rem;
+        }
+
+        .profile-stats {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-top: 1rem;
+        }
+
+        .profile-stat {
+            text-align: center;
+        }
+
+        .profile-stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .profile-about {
+            margin-top: 2rem;
+            padding: 1rem;
+            background: #f0f2f5;
+            border-radius: 8px;
+        }
+
+        body.theme-dark .profile-about {
+            background: #3a3b3c;
+        }
+
+        .photo-gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .gallery-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        /* Settings */
+        .settings-section {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+
+        .settings-section h3 {
+            margin-bottom: 1rem;
+            color: #667eea;
+        }
+
+        /* Friends */
+        .friends-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+
+        .friend-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        body.theme-dark .friend-card {
+            background: #242526;
+        }
+
+        .friend-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            margin: 0 auto 1rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .friend-avatar img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        /* Messages */
+        .messages-container {
+            display: flex;
+            gap: 1rem;
+            height: 600px;
+        }
+
+        .conversations-list {
+            width: 300px;
+            background: white;
+            border-radius: 10px;
+            padding: 1rem;
+            overflow-y: auto;
+        }
+
+        body.theme-dark .conversations-list {
+            background: #242526;
+        }
+
+        .conversation-item {
+            padding: 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-bottom: 0.5rem;
+        }
+
+        .conversation-item:hover {
+            background: #f0f2f5;
+        }
+
+        body.theme-dark .conversation-item:hover {
+            background: #3a3b3c;
+        }
+
+        .conversation-item.active {
+            background: #e7f3ff;
+        }
+
+        body.theme-dark .conversation-item.active {
+            background: #3a3b3c;
+        }
+
+        .messages-panel {
+            flex: 1;
+            background: white;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        body.theme-dark .messages-panel {
+            background: #242526;
+        }
+
+        .messages-header {
+            padding: 1rem;
+            border-bottom: 1px solid #e4e6eb;
+        }
+
+        body.theme-dark .messages-header {
+            border-bottom-color: #3a3b3c;
+        }
+
+        .messages-body {
+            flex: 1;
+            padding: 1rem;
+            overflow-y: auto;
+        }
+
+        .message {
+            margin-bottom: 1rem;
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .message.sent {
+            flex-direction: row-reverse;
+        }
+
+        .message-bubble {
+            max-width: 70%;
+            padding: 0.75rem;
+            border-radius: 18px;
+            background: #e7f3ff;
+        }
+
+        body.theme-dark .message-bubble {
+            background: #3a3b3c;
+        }
+
+        .message.sent .message-bubble {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .messages-input {
+            padding: 1rem;
+            border-top: 1px solid #e4e6eb;
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        body.theme-dark .messages-input {
+            border-top-color: #3a3b3c;
+        }
+
+        .messages-input input {
+            flex: 1;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+        }
+
+        /* Search */
+        .search-bar {
+            margin-bottom: 2rem;
+        }
+
+        .search-bar input {
+            width: 100%;
+            padding: 1rem;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            font-size: 1rem;
+        }
+
+        .search-results {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1rem;
+        }
+
+        /* Admin */
+        .admin-table {
+            width: 100%;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        body.theme-dark .admin-table {
+            background: #242526;
+        }
+
+        .admin-table table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .admin-table th,
+        .admin-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #e4e6eb;
+        }
+
+        body.theme-dark .admin-table th,
+        body.theme-dark .admin-table td {
+            border-bottom-color: #3a3b3c;
+        }
+
+        .admin-table th {
+            background: #f0f2f5;
+            font-weight: bold;
+        }
+
+        body.theme-dark .admin-table th {
+            background: #3a3b3c;
+        }
+
+        /* Utility Classes */
+        .text-center {
+            text-align: center;
+        }
+
+        .mt-1 { margin-top: 1rem; }
+        .mt-2 { margin-top: 2rem; }
+        .mb-1 { margin-bottom: 1rem; }
+        .mb-2 { margin-bottom: 2rem; }
+
+        .hidden {
+            display: none;
+        }
+
+        .card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 1rem;
+        }
+
+        .error {
+            color: #dc3545;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+        }
+
+        .success {
+            color: #28a745;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+        }
+
+        .char-counter {
+            text-align: right;
+            font-size: 0.875rem;
+            color: #65676b;
+            margin-top: 0.5rem;
+        }
+
+        .char-counter.over-limit {
+            color: #dc3545;
+        }
+    </style>
+</head>
+<body class="theme-light">
+    <!-- Navigation (only shown when logged in) -->
+    <div id="navbar" class="navbar hidden">
+        <h1>Social Network</h1>
+        <div class="nav-links">
+            <button onclick="showPage('feed')">Feed</button>
+            <button onclick="showPage('profile')">Profile</button>
+            <button onclick="showPage('friends')">Friends</button>
+            <button onclick="showPage('messages')">Messages</button>
+            <button onclick="showPage('search')">Search</button>
+            <button onclick="showPage('settings')">Settings</button>
+            <button id="adminNavBtn" class="hidden" onclick="showPage('admin')">Admin</button>
+            <button id="ownerNavBtn" class="hidden" onclick="showPage('owner')">Owner</button>
+            <button onclick="logout()">Logout</button>
+        </div>
+    </div>
+
+    <!-- Welcome Page -->
+    <div id="welcomePage" class="page active">
+        <div class="welcome-hero">
+            <h1>Welcome to Social Network</h1>
+            <p>Connect with friends and share your moments</p>
+            <button class="btn" onclick="showPage('login')" style="max-width: 200px; margin: 0 auto;">Get Started</button>
+        </div>
+        <div class="container">
+            <div class="search-bar">
+                <input type="text" id="welcomeSearch" placeholder="Search for users..." oninput="searchUsersPublic()">
+            </div>
+            <div id="welcomeSearchResults" class="search-results"></div>
+        </div>
+    </div>
+
+    <!-- Login Page -->
+    <div id="loginPage" class="page">
+        <div class="auth-container">
+            <h2>Login</h2>
+            <form onsubmit="login(event)">
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="loginEmail" required>
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="loginPassword" required>
+                </div>
+                <div class="form-group checkbox-group">
+                    <input type="checkbox" id="rememberMe">
+                    <label for="rememberMe">Remember me</label>
+                </div>
+                <button type="submit" class="btn">Login</button>
+                <div class="link-btn" onclick="showPage('forgot')">Forgot password?</div>
+                <div class="link-btn" onclick="showPage('register')">Don't have an account? Register</div>
+                <div class="link-btn" onclick="showPage('adminLogin')">Admin Login</div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Register Page -->
+    <div id="registerPage" class="page">
+        <div class="auth-container">
+            <h2>Register</h2>
+            <form onsubmit="register(event)">
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="registerEmail" required>
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="registerPassword" required minlength="6">
+                </div>
+                <div class="form-group">
+                    <label>Display Name</label>
+                    <input type="text" id="registerName" required>
+                </div>
+                <div class="form-group">
+                    <label>Referral Code (Optional)</label>
+                    <input type="text" id="referralCode">
+                </div>
+                <button type="submit" class="btn">Register</button>
+                <div class="link-btn" onclick="showPage('login')">Already have an account? Login</div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Forgot Password Page -->
+    <div id="forgotPage" class="page">
+        <div class="auth-container">
+            <h2>Reset Password</h2>
+            <form onsubmit="resetPassword(event)">
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="forgotEmail" required>
+                </div>
+                <button type="submit" class="btn">Send Reset Link</button>
+                <div class="link-btn" onclick="showPage('login')">Back to Login</div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Admin Login Page -->
+    <div id="adminLoginPage" class="page">
+        <div class="auth-container">
+            <h2>Admin Login</h2>
+            <form onsubmit="adminLogin(event)">
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="adminEmail" required>
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="adminPassword" required>
+                </div>
+                <button type="submit" class="btn">Admin Login</button>
+                <div class="link-btn" onclick="showPage('login')">Back to User Login</div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Feed Page -->
+    <div id="feedPage" class="page">
+        <div class="container">
+            <div class="post-composer">
+                <textarea id="postText" placeholder="What's on your mind?" maxlength="280" oninput="updateCharCount()"></textarea>
+                <div class="char-counter" id="charCounter">0/280</div>
+                <div class="post-composer-actions">
+                    <input type="file" id="postImage" accept="image/*" style="flex: 1;">
+                    <label>
+                        <input type="checkbox" id="friendsOnly"> Friends only
+                    </label>
+                    <button class="btn" onclick="createPost()" style="width: auto; padding: 0.75rem 2rem;">Post</button>
+                </div>
+            </div>
+            <div id="feedContainer"></div>
+        </div>
+    </div>
+
+    <!-- Profile Page -->
+    <div id="profilePage" class="page">
+        <div class="container">
+            <div class="profile-banner" id="profileBanner"></div>
+            <div class="profile-info">
+                <img id="profilePicture" class="profile-picture" src="" alt="Profile">
+                <div class="profile-details">
+                    <h2 id="profileName"></h2>
+                    <p id="profileLocation"></p>
+                    <div class="profile-stats">
+                        <div class="profile-stat">
+                            <div class="profile-stat-value" id="profilePosts">0</div>
+                            <div>Posts</div>
+                        </div>
+                        <div class="profile-stat">
+                            <div class="profile-stat-value" id="profileFriends">0</div>
+                            <div>Friends</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="profile-about">
+                    <h3>About Me</h3>
+                    <p id="profileAbout"></p>
+                </div>
+                <div>
+                    <h3 class="mt-2">Photo Gallery</h3>
+                    <div id="photoGallery" class="photo-gallery"></div>
+                </div>
+                <div>
+                    <h3 class="mt-2">Posts</h3>
+                    <div id="profilePosts"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Page -->
+    <div id="settingsPage" class="page">
+        <div class="container">
+            <div class="settings-section">
+                <h3>Profile Settings</h3>
+                <div class="form-group">
+                    <label>Display Name</label>
+                    <input type="text" id="settingsName">
+                </div>
+                <div class="form-group">
+                    <label>Age</label>
+                    <input type="number" id="settingsAge">
+                </div>
+                <div class="form-group">
+                    <label>City</label>
+                    <input type="text" id="settingsCity">
+                </div>
+                <div class="form-group">
+                    <label>Country</label>
+                    <input type="text" id="settingsCountry">
+                </div>
+                <div class="form-group">
+                    <label>About Me</label>
+                    <textarea id="settingsAbout" rows="4"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Profile Picture</label>
+                    <input type="file" id="settingsProfilePic" accept="image/*">
+                </div>
+                <div class="form-group">
+                    <label>Profile Banner</label>
+                    <select id="settingsBanner">
+                        <option value="">Default</option>
+                        <option value="banner-sunset">Sunset</option>
+                        <option value="banner-ocean">Ocean</option>
+                        <option value="banner-forest">Forest</option>
+                    </select>
+                </div>
+                <button class="btn" onclick="updateProfile()">Save Profile</button>
+            </div>
+
+            <div class="settings-section">
+                <h3>Appearance</h3>
+                <div class="form-group">
+                    <label>Theme</label>
+                    <select id="themeSelect" onchange="changeTheme()">
+                        <option value="theme-light">Light</option>
+                        <option value="theme-dark">Dark</option>
+                        <option value="theme-blue">Blue</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <h3>Referral System</h3>
+                <p>Your referral code: <strong id="myReferralCode"></strong></p>
+                <p>Referral points: <strong id="referralPoints">0</strong></p>
+                <div id="referralCodes"></div>
+                <button class="btn" onclick="generateReferralCode()">Generate New Referral Code</button>
+                <button class="btn btn-secondary mt-1" onclick="optOutReferrals()">Opt Out of Referral Program</button>
+            </div>
+
+            <div class="settings-section">
+                <h3>Billing</h3>
+                <div class="form-group">
+                    <label>Billing Email</label>
+                    <input type="email" id="billingEmail">
+                </div>
+                <div class="form-group">
+                    <label>Payment Method</label>
+                    <input type="text" id="paymentMethod" placeholder="Managed by payment provider">
+                </div>
+                <button class="btn" onclick="updateBilling()">Update Billing Info</button>
+            </div>
+
+            <div class="settings-section">
+                <h3>Data & Privacy</h3>
+                <button class="btn btn-secondary" onclick="downloadData()">Download My Data</button>
+                <button class="btn btn-secondary mt-1" onclick="deleteAccount()">Delete Account</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Friends Page -->
+    <div id="friendsPage" class="page">
+        <div class="container">
+            <h2>My Friends</h2>
+            <div id="friendsList" class="friends-grid"></div>
+            
+            <h2 class="mt-2">Friend Suggestions</h2>
+            <div id="friendSuggestions" class="friends-grid"></div>
+        </div>
+    </div>
+
+    <!-- Messages Page -->
+    <div id="messagesPage" class="page">
+        <div class="container">
+            <div class="messages-container">
+                <div class="conversations-list">
+                    <h3>Messages</h3>
+                    <div id="conversationsList"></div>
+                </div>
+                <div class="messages-panel">
+                    <div class="messages-header">
+                        <h3 id="currentConversation">Select a conversation</h3>
+                    </div>
+                    <div class="messages-body" id="messagesBody"></div>
+                    <div class="messages-input">
+                        <input type="text" id="messageInput" placeholder="Type a message...">
+                        <button class="btn" onclick="sendMessage()" style="width: auto; padding: 0.75rem 2rem;">Send</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search Page -->
+    <div id="searchPage" class="page">
+        <div class="container">
+            <div class="search-bar">
+                <input type="text" id="searchInput" placeholder="Search for users..." oninput="searchUsers()">
+            </div>
+            <div id="searchResults" class="search-results"></div>
+        </div>
+    </div>
+
+    <!-- Admin Page -->
+    <div id="adminPage" class="page">
+        <div class="container">
+            <h2>Admin Panel</h2>
+            <div class="card">
+                <h3>All Users</h3>
+                <div class="admin-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Role</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminUsersTable"></tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="card mt-2">
+                <h3>All Posts</h3>
+                <div id="adminPostsList"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Owner Page -->
+    <div id="ownerPage" class="page">
+        <div class="container">
+            <h2>Owner Dashboard</h2>
+            <div class="card">
+                <h3>Statistics</h3>
+                <div class="profile-stats">
+                    <div class="profile-stat">
+                        <div class="profile-stat-value" id="totalUsers">0</div>
+                        <div>Total Users</div>
+                    </div>
+                    <div class="profile-stat">
+                        <div class="profile-stat-value" id="totalPosts">0</div>
+                        <div>Total Posts</div>
+                    </div>
+                    <div class="profile-stat">
+                        <div class="profile-stat-value" id="totalAdmins">0</div>
+                        <div>Total Admins</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card mt-2">
+                <h3>Owner Settings</h3>
+                <p>You have permanent access to this website.</p>
+                <button class="btn btn-secondary" onclick="exportAllData()">Export All Data</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
+
+    <script>
+        // Firebase Configuration - YOU NEED TO REPLACE THIS
+        const firebaseConfig = {
+          apiKey: "AIzaSyDRTjhita5eS3i1ou6stmyvaR1eYT7RihA",
+          authDomain: "claude5-f5d80.firebaseapp.com",
+          projectId: "claude5-f5d80",
+          storageBucket: "claude5-f5d80.firebasestorage.app",
+          messagingSenderId: "245435647670",
+          appId: "1:245435647670:web:35ee367b1ae30e597f0817"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        const storage = firebase.storage();
+
+        // Global variables
+        let currentUser = null;
+        let currentUserData = null;
+        let selectedConversation = null;
+
+        // Auth State Observer
+        auth.onAuthStateChanged(async (user) => {
+            if (user) {
+                currentUser = user;
+                await loadUserData();
+                if (currentUserData) {
+                    showPage('feed');
+                    document.getElementById('navbar').classList.remove('hidden');
+                    
+                    // Show admin/owner buttons if applicable
+                    if (currentUserData.role === 'admin') {
+                        document.getElementById('adminNavBtn').classList.remove('hidden');
+                    }
+                    if (currentUserData.role === 'owner') {
+                        document.getElementById('adminNavBtn').classList.remove('hidden');
+                        document.getElementById('ownerNavBtn').classList.remove('hidden');
+                    }
+                    
+                    loadFeed();
+                    loadTheme();
+                }
+            } else {
+                currentUser = null;
+                currentUserData = null;
+                showPage('welcome');
+                document.getElementById('navbar').classList.add('hidden');
+            }
+        });
+
+        // Page Navigation
+        function showPage(pageName) {
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+            });
+            document.getElementById(pageName + 'Page').classList.add('active');
+
+            // Load page-specific data
+            if (pageName === 'profile') loadProfile();
+            if (pageName === 'settings') loadSettings();
+            if (pageName === 'friends') loadFriends();
+            if (pageName === 'messages') loadMessages();
+            if (pageName === 'admin') loadAdmin();
+            if (pageName === 'owner') loadOwner();
+        }
+
+        // Authentication Functions
+        async function login(e) {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            const remember = document.getElementById('rememberMe').checked;
+
+            try {
+                const persistence = remember ? 
+                    firebase.auth.Auth.Persistence.LOCAL : 
+                    firebase.auth.Auth.Persistence.SESSION;
+                await auth.setPersistence(persistence);
+                await auth.signInWithEmailAndPassword(email, password);
+            } catch (error) {
+                alert('Login failed: ' + error.message);
+            }
+        }
+
+        async function register(e) {
+            e.preventDefault();
+            const email = document.getElementById('registerEmail').value;
+            const password = document.getElementById('registerPassword').value;
+            const name = document.getElementById('registerName').value;
+            const referralCode = document.getElementById('referralCode').value;
+
+            try {
+                const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+                const user = userCredential.user;
+
+                // Create user document
+                await db.collection('users').doc(user.uid).set({
+                    email: email,
+                    displayName: name,
+                    role: 'user',
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    friends: [],
+                    referralPoints: 0,
+                    referralCodes: [],
+                    referralCodesGenerated: 0,
+                    optedOutReferrals: false
+                });
+
+                // Process referral if provided
+                if (referralCode) {
+                    const referralQuery = await db.collection('users')
+                        .where('referralCodes', 'array-contains', referralCode)
+                        .get();
+                    
+                    if (!referralQuery.empty) {
+                        const referrerDoc = referralQuery.docs[0];
+                        await referrerDoc.ref.update({
+                            referralPoints: firebase.firestore.FieldValue.increment(1)
+                        });
+                    }
+                }
+
+                alert('Registration successful!');
+            } catch (error) {
+                alert('Registration failed: ' + error.message);
+            }
+        }
+
+        async function adminLogin(e) {
+            e.preventDefault();
+            const email = document.getElementById('adminEmail').value;
+            const password = document.getElementById('adminPassword').value;
+
+            try {
+                await auth.signInWithEmailAndPassword(email, password);
+                const userData = await db.collection('users').doc(auth.currentUser.uid).get();
+                
+                if (userData.exists && (userData.data().role === 'admin' || userData.data().role === 'owner')) {
+                    // Success - will be handled by auth state observer
+                } else {
+                    await auth.signOut();
+                    alert('Access denied. Admin credentials required.');
+                }
+            } catch (error) {
+                alert('Login failed: ' + error.message);
+            }
+        }
+
+        async function resetPassword(e) {
+            e.preventDefault();
+            const email = document.getElementById('forgotEmail').value;
+
+            try {
+                await auth.sendPasswordResetEmail(email);
+                alert('Password reset email sent! Check your inbox.');
+                showPage('login');
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+
+        async function logout() {
+            try {
+                await auth.signOut();
+            } catch (error) {
+                alert('Logout failed: ' + error.message);
+            }
+        }
+
+        // User Data Functions
+        async function loadUserData() {
+            if (!currentUser) return;
+            
+            const userDoc = await db.collection('users').doc(currentUser.uid).get();
+            if (userDoc.exists) {
+                currentUserData = { id: userDoc.id, ...userDoc.data() };
+            }
+        }
+
+        // Post Functions
+        function updateCharCount() {
+            const text = document.getElementById('postText').value;
+            const counter = document.getElementById('charCounter');
+            counter.textContent = `${text.length}/280`;
+            
+            if (text.length > 280) {
+                counter.classList.add('over-limit');
+            } else {
+                counter.classList.remove('over-limit');
+            }
+        }
+
+        async function createPost() {
+            const text = document.getElementById('postText').value;
+            const imageFile = document.getElementById('postImage').files[0];
+            const friendsOnly = document.getElementById('friendsOnly').checked;
+
+            if (!text && !imageFile) {
+                alert('Please write something or select an image!');
+                return;
+            }
+
+            if (text.length > 280) {
+                alert('Post is too long! Maximum 280 characters.');
+                return;
+            }
+
+            try {
+                let imageUrl = null;
+                
+                if (imageFile) {
+                    const storageRef = storage.ref(`posts/${currentUser.uid}/${Date.now()}_${imageFile.name}`);
+                    await storageRef.put(imageFile);
+                    imageUrl = await storageRef.getDownloadURL();
+                }
+
+                await db.collection('posts').add({
+                    userId: currentUser.uid,
+                    userName: currentUserData.displayName,
+                    userAvatar: currentUserData.profilePicture || null,
+                    text: text,
+                    imageUrl: imageUrl,
+                    friendsOnly: friendsOnly,
+                    likes: [],
+                    comments: [],
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                document.getElementById('postText').value = '';
+                document.getElementById('postImage').value = '';
+                document.getElementById('friendsOnly').checked = false;
+                updateCharCount();
+                
+                loadFeed();
+            } catch (error) {
+                alert('Error creating post: ' + error.message);
+            }
+        }
+
+        async function loadFeed() {
+            const feedContainer = document.getElementById('feedContainer');
+            if (!feedContainer) return;
+            
+            feedContainer.innerHTML = '<p>Loading...</p>';
+
+            try {
+                const postsQuery = await db.collection('posts')
+                    .orderBy('createdAt', 'desc')
+                    .limit(50)
+                    .get();
+
+                feedContainer.innerHTML = '';
+
+                for (const doc of postsQuery.docs) {
+                    const post = { id: doc.id, ...doc.data() };
+                    
+                    // Check if post is friends-only
+                    if (post.friendsOnly && post.userId !== currentUser.uid) {
+                        if (!currentUserData.friends || !currentUserData.friends.includes(post.userId)) {
+                            continue;
+                        }
+                    }
+
+                    feedContainer.appendChild(createPostElement(post));
+                }
+
+                if (feedContainer.children.length === 0) {
+                    feedContainer.innerHTML = '<p>No posts yet. Be the first to post!</p>';
+                }
+            } catch (error) {
+                feedContainer.innerHTML = '<p>Error loading feed.</p>';
+                console.error(error);
+            }
+        }
+
+        function createPostElement(post) {
+            const postDiv = document.createElement('div');
+            postDiv.className = 'post';
+            
+            const isLiked = post.likes && post.likes.includes(currentUser.uid);
+            const isFriend = currentUserData.friends && currentUserData.friends.includes(post.userId);
+            
+            postDiv.innerHTML = `
+                <div class="post-header">
+                    <div class="post-avatar">
+                        ${post.userAvatar ? `<img src="${post.userAvatar}" alt="Avatar">` : post.userName.charAt(0)}
+                    </div>
+                    <div class="post-author">
+                        <h4>${post.userName}</h4>
+                        <div class="post-date">${post.createdAt ? new Date(post.createdAt.toDate()).toLocaleString() : 'Just now'}</div>
+                    </div>
+                    ${post.userId !== currentUser.uid && !isFriend ? `<button class="btn" onclick="addFriend('${post.userId}')" style="width: auto; padding: 0.5rem 1rem;">Add Friend</button>` : ''}
+                </div>
+                <div class="post-content">${post.text || ''}</div>
+                ${post.imageUrl ? `<img src="${post.imageUrl}" class="post-image" alt="Post image">` : ''}
+                <div class="post-actions">
+                    <button class="post-action-btn ${isLiked ? 'liked' : ''}" onclick="toggleLike('${post.id}')">
+                        ❤️ ${post.likes ? post.likes.length : 0} Likes
+                    </button>
+                    <button class="post-action-btn" onclick="toggleComments('${post.id}')">
+                        💬 ${post.comments ? post.comments.length : 0} Comments
+                    </button>
+                    ${post.imageUrl ? `<button class="post-action-btn" onclick="downloadImage('${post.imageUrl}')">⬇️ Download</button>` : ''}
+                </div>
+                <div class="comments-section hidden" id="comments-${post.id}">
+                    <div id="commentsList-${post.id}"></div>
+                    <div class="comment-input">
+                        <input type="text" id="commentInput-${post.id}" placeholder="Write a comment...">
+                        <button class="btn" onclick="addComment('${post.id}')" style="width: auto; padding: 0.5rem 1rem;">Post</button>
+                    </div>
+                </div>
+            `;
+            
+            return postDiv;
+        }
+
+        async function toggleLike(postId) {
+            try {
+                const postRef = db.collection('posts').doc(postId);
+                const postDoc = await postRef.get();
+                const post = postDoc.data();
+                
+                const likes = post.likes || [];
+                const index = likes.indexOf(currentUser.uid);
+                
+                if (index > -1) {
+                    likes.splice(index, 1);
+                } else {
+                    likes.push(currentUser.uid);
+                }
+                
+                await postRef.update({ likes: likes });
+                loadFeed();
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+
+        async function toggleComments(postId) {
+            const commentsSection = document.getElementById(`comments-${postId}`);
+            commentsSection.classList.toggle('hidden');
+            
+            if (!commentsSection.classList.contains('hidden')) {
+                await loadComments(postId);
+            }
+        }
+
+        async function loadComments(postId) {
+            const postDoc = await db.collection('posts').doc(postId).get();
+            const post = postDoc.data();
+            const commentsList = document.getElementById(`commentsList-${postId}`);
+            
+            commentsList.innerHTML = '';
+            
+            if (post.comments && post.comments.length > 0) {
+                for (const comment of post.comments) {
+                    const commentDiv = document.createElement('div');
+                    commentDiv.className = 'comment';
+                    commentDiv.innerHTML = `
+                        <div class="comment-author">${comment.userName}</div>
+                        <div>${comment.text}</div>
+                    `;
+                    commentsList.appendChild(commentDiv);
+                }
+            }
+        }
+
+        async function addComment(postId) {
+            const input = document.getElementById(`commentInput-${postId}`);
+            const text = input.value.trim();
+            
+            if (!text) return;
+            
+            try {
+                const postRef = db.collection('posts').doc(postId);
+                const postDoc = await postRef.get();
+                const comments = postDoc.data().comments || [];
+                
+                comments.push({
+                    userId: currentUser.uid,
+                    userName: currentUserData.displayName,
+                    text: text,
+                    createdAt: new Date()
+                });
+                
+                await postRef.update({ comments: comments });
+                input.value = '';
+                await loadComments(postId);
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+
+        function downloadImage(url) {
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'image.jpg';
+            link.target = '_blank';
+            link.click();
+        }
+
+        // Profile Functions
+        async function loadProfile() {
+            if (!currentUserData) return;
+            
+            document.getElementById('profileName').textContent = currentUserData.displayName || 'User';
+            document.getElementById('profileLocation').textContent = 
+                `${currentUserData.city || ''} ${currentUserData.country || ''}`.trim() || 'Location not set';
+            document.getElementById('profileAbout').textContent = currentUserData.about || 'No bio yet.';
+            
+            if (currentUserData.profilePicture) {
+                document.getElementById('profilePicture').src = currentUserData.profilePicture;
+            }
+            
+            if (currentUserData.banner) {
+                document.getElementById('profileBanner').className = `profile-banner ${currentUserData.banner}`;
+            }
+            
+            // Load posts count
+            const postsQuery = await db.collection('posts').where('userId', '==', currentUser.uid).get();
+            document.getElementById('profilePosts').textContent = postsQuery.size;
+            
+            // Load friends count
+            document.getElementById('profileFriends').textContent = 
+                currentUserData.friends ? currentUserData.friends.length : 0;
+            
+            // Load user's posts
+            const postsContainer = document.getElementById('profilePosts');
+            postsContainer.innerHTML = '';
+            
+            for (const doc of postsQuery.docs) {
+                const post = { id: doc.id, ...doc.data() };
+                postsContainer.appendChild(createPostElement(post));
+            }
+            
+            // Load photo gallery
+            const galleryContainer = document.getElementById('photoGallery');
+            galleryContainer.innerHTML = '';
+            
+            for (const doc of postsQuery.docs) {
+                const post = doc.data();
+                if (post.imageUrl) {
+                    const img = document.createElement('img');
+                    img.src = post.imageUrl;
+                    img.className = 'gallery-image';
+                    img.onclick = () => window.open(post.imageUrl, '_blank');
+                    galleryContainer.appendChild(img);
+                }
+            }
+        }
+
+        // Settings Functions
+        async function loadSettings() {
+            if (!currentUserData) return;
+            
+            document.getElementById('settingsName').value = currentUserData.displayName || '';
+            document.getElementById('settingsAge').value = currentUserData.age || '';
+            document.getElementById('settingsCity').value = currentUserData.city || '';
+            document.getElementById('settingsCountry').value = currentUserData.country || '';
+            document.getElementById('settingsAbout').value = currentUserData.about || '';
+            document.getElementById('settingsBanner').value = currentUserData.banner || '';
+            document.getElementById('themeSelect').value = currentUserData.theme || 'theme-light';
+            
+            // Load referral info
+            document.getElementById('myReferralCode').textContent = currentUser.uid.substring(0, 8);
+            document.getElementById('referralPoints').textContent = currentUserData.referralPoints || 0;
+            
+            const codesDiv = document.getElementById('referralCodes');
+            codesDiv.innerHTML = '';
+            
+            if (currentUserData.referralCodes && currentUserData.referralCodes.length > 0) {
+                codesDiv.innerHTML = '<h4>Your Referral Codes:</h4>';
+                currentUserData.referralCodes.forEach(code => {
+                    codesDiv.innerHTML += `<p>${code}</p>`;
+                });
+            }
+            
+            // Load billing
+            document.getElementById('billingEmail').value = currentUserData.billingEmail || currentUser.email;
+        }
+
+        async function updateProfile() {
+            try {
+                const updates = {
+                    displayName: document.getElementById('settingsName').value,
+                    age: parseInt(document.getElementById('settingsAge').value) || null,
+                    city: document.getElementById('settingsCity').value,
+                    country: document.getElementById('settingsCountry').value,
+                    about: document.getElementById('settingsAbout').value,
+                    banner: document.getElementById('settingsBanner').value
+                };
+                
+                const profilePicFile = document.getElementById('settingsProfilePic').files[0];
+                if (profilePicFile) {
+                    const storageRef = storage.ref(`profiles/${currentUser.uid}/${profilePicFile.name}`);
+                    await storageRef.put(profilePicFile);
+                    updates.profilePicture = await storageRef.getDownloadURL();
+                }
+                
+                await db.collection('users').doc(currentUser.uid).update(updates);
+                await loadUserData();
+                
+                alert('Profile updated successfully!');
+            } catch (error) {
+                alert('Error updating profile: ' + error.message);
+            }
+        }
+
+        function changeTheme() {
+            const theme = document.getElementById('themeSelect').value;
+            document.body.className = theme;
+            
+            if (currentUser) {
+                db.collection('users').doc(currentUser.uid).update({ theme: theme });
+            }
+        }
+
+        function loadTheme() {
+            if (currentUserData && currentUserData.theme) {
+                document.body.className = currentUserData.theme;
+                document.getElementById('themeSelect').value = currentUserData.theme;
+            }
+        }
+
+        async function generateReferralCode() {
+            if (!currentUserData) return;
+            
+            const codesThisMonth = currentUserData.referralCodesGenerated || 0;
+            if (codesThisMonth >= 5) {
+                alert('You have reached the maximum of 5 referral codes this month.');
+                return;
+            }
+            
+            const code = Math.random().toString(36).substring(2, 10).toUpperCase();
+            
+            await db.collection('users').doc(currentUser.uid).update({
+                referralCodes: firebase.firestore.FieldValue.arrayUnion(code),
+                referralCodesGenerated: codesThisMonth + 1
+            });
+            
+            await loadUserData();
+            loadSettings();
+            
+            alert('Referral code generated: ' + code);
+        }
+
+        async function optOutReferrals() {
+            if (confirm('Are you sure you want to opt out of the referral program? This will delete all your referral codes and points.')) {
+                await db.collection('users').doc(currentUser.uid).update({
+                    referralCodes: [],
+                    referralPoints: 0,
+                    optedOutReferrals: true
+                });
+                
+                await loadUserData();
+                loadSettings();
+                
+                alert('You have opted out of the referral program.');
+            }
+        }
+
+        async function updateBilling() {
+            const billingEmail = document.getElementById('billingEmail').value;
+            
+            await db.collection('users').doc(currentUser.uid).update({
+                billingEmail: billingEmail
+            });
+            
+            alert('Billing information updated!');
+        }
+
+        async function downloadData() {
+            try {
+                const userData = (await db.collection('users').doc(currentUser.uid).get()).data();
+                const postsQuery = await db.collection('posts').where('userId', '==', currentUser.uid).get();
+                const posts = postsQuery.docs.map(doc => doc.data());
+                
+                const data = {
+                    user: userData,
+                    posts: posts
+                };
+                
+                const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = 'my-data.json';
+                link.click();
+            } catch (error) {
+                alert('Error downloading data: ' + error.message);
+            }
+        }
+
+        async function deleteAccount() {
+            if (confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
+                if (confirm('This will permanently delete all your data. Are you absolutely sure?')) {
+                    try {
+                        // Delete user posts
+                        const postsQuery = await db.collection('posts').where('userId', '==', currentUser.uid).get();
+                        for (const doc of postsQuery.docs) {
+                            await doc.ref.delete();
+                        }
+                        
+                        // Delete user document
+                        await db.collection('users').doc(currentUser.uid).delete();
+                        
+                        // Delete auth account
+                        await currentUser.delete();
+                        
+                        alert('Account deleted successfully.');
+                    } catch (error) {
+                        alert('Error deleting account: ' + error.message);
+                    }
+                }
+            }
+        }
+
+        // Friends Functions
+        async function loadFriends() {
+            const friendsList = document.getElementById('friendsList');
+            const suggestionsDiv = document.getElementById('friendSuggestions');
+            
+            friendsList.innerHTML = '<p>Loading...</p>';
+            suggestionsDiv.innerHTML = '<p>Loading...</p>';
+            
+            try {
+                // Load friends
+                if (currentUserData.friends && currentUserData.friends.length > 0) {
+                    friendsList.innerHTML = '';
+                    
+                    for (const friendId of currentUserData.friends) {
+                        const friendDoc = await db.collection('users').doc(friendId).get();
+                        if (friendDoc.exists) {
+                            const friend = friendDoc.data();
+                            const card = createFriendCard(friendId, friend, true);
+                            friendsList.appendChild(card);
+                        }
+                    }
+                } else {
+                    friendsList.innerHTML = '<p>No friends yet. Search for users to add!</p>';
+                }
+                
+                // Load suggestions (users with mutual friends)
+                const allUsers = await db.collection('users').limit(10).get();
+                suggestionsDiv.innerHTML = '';
+                
+                for (const doc of allUsers.docs) {
+                    if (doc.id !== currentUser.uid && 
+                        (!currentUserData.friends || !currentUserData.friends.includes(doc.id))) {
+                        const user = doc.data();
+                        const card = createFriendCard(doc.id, user, false);
+                        suggestionsDiv.appendChild(card);
+                    }
+                }
+                
+                if (suggestionsDiv.children.length === 0) {
+                    suggestionsDiv.innerHTML = '<p>No suggestions available.</p>';
+                }
+            } catch (error) {
+                friendsList.innerHTML = '<p>Error loading friends.</p>';
+                console.error(error);
+            }
+        }
+
+        function createFriendCard(userId, user, isFriend) {
+            const card = document.createElement('div');
+            card.className = 'friend-card';
+            
+            card.innerHTML = `
+                <div class="friend-avatar">
+                    ${user.profilePicture ? `<img src="${user.profilePicture}" alt="Avatar">` : user.displayName.charAt(0)}
+                </div>
+                <h4>${user.displayName}</h4>
+                <p>${user.age ? `${user.age} years old` : ''}</p>
+                <p>${user.city || ''} ${user.country || ''}</p>
+                ${isFriend ? 
+                    `<button class="btn btn-secondary" onclick="removeFriend('${userId}')">Remove Friend</button>` :
+                    `<button class="btn" onclick="addFriend('${userId}')">Add Friend</button>`
+                }
+            `;
+            
+            return card;
+        }
+
+        async function addFriend(friendId) {
+            try {
+                const friends = currentUserData.friends || [];
+                if (!friends.includes(friendId)) {
+                    friends.push(friendId);
+                    await db.collection('users').doc(currentUser.uid).update({ friends: friends });
+                    await loadUserData();
+                    alert('Friend added!');
+                    loadFriends();
+                    loadFeed(); // Refresh feed to show friends-only posts
+                }
+            } catch (error) {
+                alert('Error adding friend: ' + error.message);
+            }
+        }
+
+        async function removeFriend(friendId) {
+            try {
+                const friends = currentUserData.friends || [];
+                const index = friends.indexOf(friendId);
+                if (index > -1) {
+                    friends.splice(index, 1);
+                    await db.collection('users').doc(currentUser.uid).update({ friends: friends });
+                    await loadUserData();
+                    alert('Friend removed.');
+                    loadFriends();
+                    loadFeed(); // Refresh feed
+                }
+            } catch (error) {
+                alert('Error removing friend: ' + error.message);
+            }
+        }
+
+        // Messages Functions
+        async function loadMessages() {
+            const conversationsList = document.getElementById('conversationsList');
+            
+            conversationsList.innerHTML = '<p>Loading...</p>';
+            
+            try {
+                if (!currentUserData.friends || currentUserData.friends.length === 0) {
+                    conversationsList.innerHTML = '<p>Add friends to start messaging!</p>';
+                    return;
+                }
+                
+                conversationsList.innerHTML = '';
+                
+                for (const friendId of currentUserData.friends) {
+                    const friendDoc = await db.collection('users').doc(friendId).get();
+                    if (friendDoc.exists) {
+                        const friend = friendDoc.data();
+                        const item = document.createElement('div');
+                        item.className = 'conversation-item';
+                        item.innerHTML = `<strong>${friend.displayName}</strong>`;
+                        item.onclick = () => openConversation(friendId, friend.displayName);
+                        conversationsList.appendChild(item);
+                    }
+                }
+            } catch (error) {
+                conversationsList.innerHTML = '<p>Error loading conversations.</p>';
+                console.error(error);
+            }
+        }
+
+        async function openConversation(friendId, friendName) {
+            selectedConversation = friendId;
+            document.getElementById('currentConversation').textContent = friendName;
+            
+            // Highlight selected conversation
+            document.querySelectorAll('.conversation-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            event.currentTarget.classList.add('active');
+            
+            await loadConversationMessages();
+        }
+
+        async function loadConversationMessages() {
+            const messagesBody = document.getElementById('messagesBody');
+            messagesBody.innerHTML = '<p>Loading messages...</p>';
+            
+            try {
+                const conversationId = [currentUser.uid, selectedConversation].sort().join('_');
+                const messagesQuery = await db.collection('messages')
+                    .where('conversationId', '==', conversationId)
+                    .orderBy('createdAt', 'asc')
+                    .get();
+                
+                messagesBody.innerHTML = '';
+                
+                for (const doc of messagesQuery.docs) {
+                    const message = doc.data();
+                    const messageDiv = document.createElement('div');
+                    messageDiv.className = `message ${message.senderId === currentUser.uid ? 'sent' : 'received'}`;
+                    messageDiv.innerHTML = `
+                        <div class="message-bubble">
+                            ${message.text}
+                        </div>
+                    `;
+                    messagesBody.appendChild(messageDiv);
+                }
+                
+                if (messagesBody.children.length === 0) {
+                    messagesBody.innerHTML = '<p>No messages yet. Start the conversation!</p>';
+                }
+                
+                messagesBody.scrollTop = messagesBody.scrollHeight;
+            } catch (error) {
+                messagesBody.innerHTML = '<p>Error loading messages.</p>';
+                console.error(error);
+            }
+        }
+
+        async function sendMessage() {
+            if (!selectedConversation) {
+                alert('Please select a conversation first.');
+                return;
+            }
+            
+            const input = document.getElementById('messageInput');
+            const text = input.value.trim();
+            
+            if (!text) return;
+            
+            try {
+                const conversationId = [currentUser.uid, selectedConversation].sort().join('_');
+                
+                await db.collection('messages').add({
+                    conversationId: conversationId,
+                    senderId: currentUser.uid,
+                    receiverId: selectedConversation,
+                    text: text,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                
+                input.value = '';
+                await loadConversationMessages();
+            } catch (error) {
+                alert('Error sending message: ' + error.message);
+            }
+        }
+
+        // Search Functions
+        async function searchUsers() {
+            const query = document.getElementById('searchInput').value.toLowerCase().trim();
+            const resultsDiv = document.getElementById('searchResults');
+            
+            if (!query) {
+                resultsDiv.innerHTML = '';
+                return;
+            }
+            
+            resultsDiv.innerHTML = '<p>Searching...</p>';
+            
+            try {
+                const usersQuery = await db.collection('users').get();
+                resultsDiv.innerHTML = '';
+                
+                let found = false;
+                for (const doc of usersQuery.docs) {
+                    if (doc.id === currentUser.uid) continue;
+                    
+                    const user = doc.data();
+                    if (user.displayName.toLowerCase().includes(query) || 
+                        user.email.toLowerCase().includes(query)) {
+                        const isFriend = currentUserData.friends && currentUserData.friends.includes(doc.id);
+                        const card = createFriendCard(doc.id, user, isFriend);
+                        resultsDiv.appendChild(card);
+                        found = true;
+                    }
+                }
+                
+                if (!found) {
+                    resultsDiv.innerHTML = '<p>No users found.</p>';
+                }
+            } catch (error) {
+                resultsDiv.innerHTML = '<p>Error searching users.</p>';
+                console.error(error);
+            }
+        }
+
+        async function searchUsersPublic() {
+            const query = document.getElementById('welcomeSearch').value.toLowerCase().trim();
+            const resultsDiv = document.getElementById('welcomeSearchResults');
+            
+            if (!query) {
+                resultsDiv.innerHTML = '';
+                return;
+            }
+            
+            resultsDiv.innerHTML = '<p>Searching...</p>';
+            
+            try {
+                const usersQuery = await db.collection('users').get();
+                resultsDiv.innerHTML = '';
+                
+                let found = false;
+                for (const doc of usersQuery.docs) {
+                    const user = doc.data();
+                    if (user.displayName.toLowerCase().includes(query)) {
+                        const card = document.createElement('div');
+                        card.className = 'friend-card';
+                        card.innerHTML = `
+                            <div class="friend-avatar">
+                                ${user.profilePicture ? `<img src="${user.profilePicture}" alt="Avatar">` : user.displayName.charAt(0)}
+                            </div>
+                            <h4>${user.displayName}</h4>
+                            <p>${user.city || ''} ${user.country || ''}</p>
+                            <p>Login to add as friend</p>
+                        `;
+                        resultsDiv.appendChild(card);
+                        found = true;
+                    }
+                }
+                
+                if (!found) {
+                    resultsDiv.innerHTML = '<p>No users found.</p>';
+                }
+            } catch (error) {
+                resultsDiv.innerHTML = '<p>Error searching users.</p>';
+                console.error(error);
+            }
+        }
+
+        // Admin Functions
+        async function loadAdmin() {
+            const usersTable = document.getElementById('adminUsersTable');
+            const postsDiv = document.getElementById('adminPostsList');
+            
+            usersTable.innerHTML = '<tr><td colspan="4">Loading...</td></tr>';
+            postsDiv.innerHTML = '<p>Loading...</p>';
+            
+            try {
+                // Load all users
+                const usersQuery = await db.collection('users').get();
+                usersTable.innerHTML = '';
+                
+                for (const doc of usersQuery.docs) {
+                    const user = doc.data();
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${user.displayName}</td>
+                        <td>${user.email}</td>
+                        <td>${user.role || 'user'}</td>
+                        <td>
+                            <button class="btn btn-secondary" onclick="deleteUser('${doc.id}')" style="padding: 0.5rem 1rem;">Delete</button>
+                        </td>
+                    `;
+                    usersTable.appendChild(row);
+                }
+                
+                // Load all posts
+                const postsQuery = await db.collection('posts').orderBy('createdAt', 'desc').get();
+                postsDiv.innerHTML = '';
+                
+                for (const doc of postsQuery.docs) {
+                    const post = { id: doc.id, ...doc.data() };
+                    const postDiv = createPostElement(post);
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.className = 'btn btn-secondary mt-1';
+                    deleteBtn.textContent = 'Delete Post';
+                    deleteBtn.onclick = () => deletePost(doc.id);
+                    postDiv.appendChild(deleteBtn);
+                    postsDiv.appendChild(postDiv);
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        }
+
+        async function deleteUser(userId) {
+            if (confirm('Are you sure you want to delete this user?')) {
+                try {
+                    await db.collection('users').doc(userId).delete();
+                    alert('User deleted.');
+                    loadAdmin();
+                } catch (error) {
+                    alert('Error: ' + error.message);
+                }
+            }
+        }
+
+        async function deletePost(postId) {
+            if (confirm('Are you sure you want to delete this post?')) {
+                try {
+                    await db.collection('posts').doc(postId).delete();
+                    alert('Post deleted.');
+                    loadAdmin();
+                } catch (error) {
+                    alert('Error: ' + error.message);
+                }
+            }
+        }
+
+        // Owner Functions
+        async function loadOwner() {
+            try {
+                const usersQuery = await db.collection('users').get();
+                const postsQuery = await db.collection('posts').get();
+                
+                let adminCount = 0;
+                usersQuery.forEach(doc => {
+                    if (doc.data().role === 'admin' || doc.data().role === 'owner') {
+                        adminCount++;
+                    }
+                });
+                
+                document.getElementById('totalUsers').textContent = usersQuery.size;
+                document.getElementById('totalPosts').textContent = postsQuery.size;
+                document.getElementById('totalAdmins').textContent = adminCount;
+            } catch (error) {
+                console.error(error);
+            }
+        }
+
+        async function exportAllData() {
+            try {
+                const usersQuery = await db.collection('users').get();
+                const postsQuery = await db.collection('posts').get();
+                
+                const data = {
+                    users: usersQuery.docs.map(doc => ({ id: doc.id, ...doc.data() })),
+                    posts: postsQuery.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+                };
+                
+                const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = 'all-data.json';
+                link.click();
+            } catch (error) {
+                alert('Error exporting data: ' + error.message);
+            }
+        }
+    </script>
+</body>
+</html>

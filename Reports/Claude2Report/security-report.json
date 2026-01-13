@@ -1,0 +1,623 @@
+{
+  "metadata": {
+    "scanDate": "2025-12-15T21:53:50.248Z",
+    "duration": "139s",
+    "target": "https://claude2-93180.firebaseapp.com",
+    "appName": "Social Media App",
+    "projectId": "claude2-93180",
+    "scope": "OWASP Top 10:2021 A01-A03"
+  },
+  "summary": {
+    "total": 20,
+    "bySeverity": {
+      "CRITICAL": 0,
+      "HIGH": 16,
+      "MEDIUM": 4,
+      "LOW": 0,
+      "INFO": 0
+    },
+    "byCategory": {
+      "A01": 6,
+      "A02": 3,
+      "A03": 11
+    },
+    "byTool": {
+      "static-analysis": 3,
+      "firebase-emulator": 2,
+      "semgrep": 13,
+      "crypto-scanner": 2
+    },
+    "riskScore": 88,
+    "riskLevel": "CRITICAL",
+    "deduplication": {
+      "originalCount": 23,
+      "deduplicatedCount": 20,
+      "duplicatesRemoved": 3,
+      "reductionPercent": 13
+    }
+  },
+  "findings": [
+    {
+      "id": "VULN-001",
+      "category": "A01",
+      "cwe": "CWE-284",
+      "cweName": "Improper Access Control",
+      "severity": "HIGH",
+      "title": "Unrestricted Read Access",
+      "description": "Rule allows anyone to read data without authentication",
+      "evidence": {
+        "rule": "allow read: if true",
+        "location": "firestore.rules"
+      },
+      "remediation": "Change to: allow read: if request.auth != null",
+      "tool": "static-analysis",
+      "timestamp": "2025-12-15T21:51:31.106Z",
+      "tools": [
+        "static-analysis"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "c840b8d7ff27a8ee",
+      "_fingerprintSource": "cwe:CWE-284||cat:A01||loc:rule:allow read: if true||vuln:rule:allow read: if true||title:unrestricted read access"
+    },
+    {
+      "id": "VULN-002",
+      "category": "A01",
+      "cwe": "CWE-639",
+      "cweName": "IDOR",
+      "severity": "HIGH",
+      "title": "IDOR Vulnerability on User Profiles",
+      "description": "Users can access other users' profiles by simply changing the document ID in the request.",
+      "evidence": "alice123 accessed bob456's profile by changing document ID",
+      "remediation": "Restrict reads to own profile: allow read: if request.auth.uid == userId",
+      "tool": "firebase-emulator",
+      "timestamp": "2025-12-15T21:51:41.799Z",
+      "tools": [
+        "firebase-emulator"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "8116391c3befc481",
+      "_fingerprintSource": "cwe:CWE-639||cat:A01||title:idor vulnerability on user profiles"
+    },
+    {
+      "id": "VULN-003",
+      "category": "A01",
+      "cwe": "CWE-863",
+      "cweName": "Incorrect Authorization",
+      "severity": "HIGH",
+      "title": "client-side-isadmin",
+      "description": "Client-side admin check. CWE-863",
+      "evidence": {
+        "file": "/home/nillof/Exjobb/Claude2/my-social-site/app.js",
+        "line": 111,
+        "endLine": 111,
+        "code": "if (!userDoc.data().isAdmin) {"
+      },
+      "remediation": null,
+      "tool": "semgrep",
+      "timestamp": "2025-12-15T21:51:47.870Z",
+      "tools": [
+        "semgrep"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "23fcb28b607e67c2",
+      "_fingerprintSource": "cwe:CWE-863||cat:A01||loc:file:/home/nillof/Exjobb/Claude2/my-social-site/app.js|line:111||vuln:code:if (!userdoc.data().isadmin) {||title:client-side-isadmin"
+    },
+    {
+      "id": "VULN-004",
+      "category": "A01",
+      "cwe": "CWE-863",
+      "cweName": "Incorrect Authorization",
+      "severity": "HIGH",
+      "title": "client-side-isadmin",
+      "description": "Client-side admin check. CWE-863",
+      "evidence": {
+        "file": "/home/nillof/Exjobb/Claude2/my-social-site/app.js",
+        "line": 153,
+        "endLine": 153,
+        "code": "if (userData.isAdmin) {"
+      },
+      "remediation": null,
+      "tool": "semgrep",
+      "timestamp": "2025-12-15T21:51:47.871Z",
+      "tools": [
+        "semgrep"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "58e7b4019ea22911",
+      "_fingerprintSource": "cwe:CWE-863||cat:A01||loc:file:/home/nillof/Exjobb/Claude2/my-social-site/app.js|line:153||vuln:code:if (userdata.isadmin) {||title:client-side-isadmin"
+    },
+    {
+      "id": "VULN-005",
+      "category": "A01",
+      "cwe": "CWE-863",
+      "cweName": "Incorrect Authorization",
+      "severity": "HIGH",
+      "title": "client-side-isadmin",
+      "description": "Client-side admin check. CWE-863",
+      "evidence": {
+        "file": "/home/nillof/Exjobb/Claude2/my-social-site/app.js",
+        "line": 1121,
+        "endLine": 1121,
+        "code": "${userData.isAdmin ? ' <span style=\"color: var(--primary-color);\">[ADMIN]</span>' : ''}"
+      },
+      "remediation": null,
+      "tool": "semgrep",
+      "timestamp": "2025-12-15T21:51:47.874Z",
+      "tools": [
+        "semgrep"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "bfa2629e2e12f77c",
+      "_fingerprintSource": "cwe:CWE-863||cat:A01||loc:file:/home/nillof/Exjobb/Claude2/my-social-site/app.js|line:1121||vuln:code:${userdata.isadmin ?  <span style=color: var(--primary-color);>[admin]</span> : ||title:client-side-isadmin"
+    },
+    {
+      "id": "VULN-006",
+      "category": "A02",
+      "cwe": "CWE-798",
+      "cweName": "Unknown",
+      "severity": "HIGH",
+      "title": "Hardcoded Google API Key found",
+      "description": "Found potential Google API Key in https://claude2-93180.firebaseapp.com/config.js",
+      "evidence": {
+        "pattern": "Google API Key",
+        "source": "https://claude2-93180.firebaseapp.com/config.js",
+        "redactedMatch": "AIzaSyArIl...vhauk"
+      },
+      "remediation": null,
+      "tool": "crypto-scanner",
+      "timestamp": "2025-12-15T21:53:22.436Z",
+      "tools": [
+        "crypto-scanner"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "3d0538ce25f56f4c",
+      "_fingerprintSource": "cwe:CWE-798||cat:A02||title:hardcoded google api key found"
+    },
+    {
+      "id": "VULN-007",
+      "category": "A03",
+      "cwe": "CWE-610",
+      "cweName": "Unknown",
+      "severity": "HIGH",
+      "title": "external-reference-script-src",
+      "description": "Dynamic script.src. CWE-610",
+      "evidence": {
+        "file": "/home/nillof/Exjobb/Claude2/my-social-site/app.js",
+        "line": 451,
+        "endLine": 451,
+        "code": "profilePic.src = userData.profilePicture || 'https://via.placeholder.com/120';"
+      },
+      "remediation": null,
+      "tool": "semgrep",
+      "timestamp": "2025-12-15T21:51:47.873Z",
+      "tools": [
+        "semgrep"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "956970ab3cc91875",
+      "_fingerprintSource": "cwe:CWE-610||cat:A03||loc:file:/home/nillof/Exjobb/Claude2/my-social-site/app.js|line:451||vuln:code:profilepic.src = userdata.profilepicture || https://via.placeholder.com/120;||title:external-reference-script-src"
+    },
+    {
+      "id": "VULN-008",
+      "category": "A03",
+      "cwe": "CWE-610",
+      "cweName": "Unknown",
+      "severity": "HIGH",
+      "title": "external-reference-script-src",
+      "description": "Dynamic script.src. CWE-610",
+      "evidence": {
+        "file": "/home/nillof/Exjobb/Claude2/my-social-site/app.js",
+        "line": 493,
+        "endLine": 493,
+        "code": "img.src = imageUrl;"
+      },
+      "remediation": null,
+      "tool": "semgrep",
+      "timestamp": "2025-12-15T21:51:47.873Z",
+      "tools": [
+        "semgrep"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "87fd136648e9dba8",
+      "_fingerprintSource": "cwe:CWE-610||cat:A03||loc:file:/home/nillof/Exjobb/Claude2/my-social-site/app.js|line:493||vuln:code:img.src = imageurl;||title:external-reference-script-src"
+    },
+    {
+      "id": "VULN-009",
+      "category": "A03",
+      "cwe": "CWE-79",
+      "cweName": "Cross-site Scripting (XSS)",
+      "severity": "HIGH",
+      "title": "dom-xss-innerhtml",
+      "description": "innerHTML XSS. CWE-79",
+      "evidence": {
+        "file": "/home/nillof/Exjobb/Claude2/my-social-site/app.js",
+        "line": 274,
+        "endLine": 309,
+        "code": "postDiv.innerHTML = `\n        <div class=\"post-header\">\n            <img src=\"${profilePic || 'https://via.placeholder.com/40'}\" class=\"post-avatar\" alt=\"${post.authorName}\">\n            <div>\n                <div class=\"post-author\">${post.authorName}</div>\n                <div class=\"post-time\">${formatDate(post.createdAt)}</div>\n            </div>\n        </div>\n        <div class=\"post-content\">${escapeHtml(post.content)}</div>\n        ${post.imageUrl ? `<img src=\"${post.imageUrl}\" class=\"post-image\" alt=\"Post image\">` : ''}\n        <div class=\"post-actions\">\n            <div class=\"post-action ${isLiked ? 'liked' : ''}\" onclick=\"toggleLike('${postId}')\">\n                ❤️ <span id=\"like-count-${postId}\">${likeCount}</span>\n            </div>\n            <div class=\"post-action\" onclick=\"toggleComments('${postId}')\">\n                💬 Comment\n            </div>\n            ${post.authorId === currentUser.uid ? `\n                <div class=\"post-action\" onclick=\"deletePost('${postId}')\">\n                    🗑️ Delete\n                </div>\n            ` : ''}\n            ${post.imageUrl ? `\n                <div class=\"post-action\" onclick=\"downloadImage('${post.imageUrl}')\">\n                    ⬇️ Download\n                </div>\n            ` : ''}\n        </div>\n        <div class=\"comments-section\" id=\"comments-${postId}\" style=\"display:none;\">\n            <div id=\"comments-list-${postId}\"></div>\n            <div class=\"comment-input\">\n                <input type=\"text\" id=\"comment-input-${postId}\" placeholder=\"Write a comment...\">\n                <button onclick=\"addComment('${postId}')\" class=\"btn-primary\">Send</button>\n            </div>\n        </div>\n    `;"
+      },
+      "remediation": null,
+      "tool": "semgrep",
+      "timestamp": "2025-12-15T21:51:47.872Z",
+      "tools": [
+        "semgrep"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "d2f6a4a907c37717",
+      "_fingerprintSource": "cwe:CWE-79||cat:A03||loc:file:/home/nillof/Exjobb/Claude2/my-social-site/app.js|line:274||vuln:code:postdiv.innerhtml = ` <div class=post-header> <img src=${profilepic || https://v||title:dom xss"
+    },
+    {
+      "id": "VULN-010",
+      "category": "A03",
+      "cwe": "CWE-79",
+      "cweName": "Cross-site Scripting (XSS)",
+      "severity": "HIGH",
+      "title": "dom-xss-innerhtml",
+      "description": "innerHTML XSS. CWE-79",
+      "evidence": {
+        "file": "/home/nillof/Exjobb/Claude2/my-social-site/app.js",
+        "line": 365,
+        "endLine": 368,
+        "code": "commentDiv.innerHTML = `\n                <div class=\"comment-author\">${comment.authorName}</div>\n                <div class=\"comment-content\">${escapeHtml(comment.content)}</div>\n            `;"
+      },
+      "remediation": null,
+      "tool": "semgrep",
+      "timestamp": "2025-12-15T21:51:47.872Z",
+      "tools": [
+        "semgrep"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "be1c9a4d4f6e7bec",
+      "_fingerprintSource": "cwe:CWE-79||cat:A03||loc:file:/home/nillof/Exjobb/Claude2/my-social-site/app.js|line:365||vuln:code:commentdiv.innerhtml = ` <div class=comment-author>${comment.authorname}</div> <||title:dom xss"
+    },
+    {
+      "id": "VULN-011",
+      "category": "A03",
+      "cwe": "CWE-79",
+      "cweName": "Cross-site Scripting (XSS)",
+      "severity": "HIGH",
+      "title": "dom-xss-innerhtml",
+      "description": "innerHTML XSS. CWE-79",
+      "evidence": {
+        "file": "/home/nillof/Exjobb/Claude2/my-social-site/app.js",
+        "line": 619,
+        "endLine": 631,
+        "code": "card.innerHTML = `\n        <img src=\"${userData.profilePicture || 'https://via.placeholder.com/80'}\" class=\"friend-avatar\" alt=\"${userData.displayName}\">\n        <div class=\"friend-name\">${userData.displayName}</div>\n        <div class=\"friend-info\">\n            ${userData.age ? userData.age + ' years old' : ''}<br>\n            ${userData.city ? userData.city : ''}${userData.country ? ', ' + userData.country : ''}\n        </div>\n        ${isFriend ? \n            `<button onclick=\"removeFriend('${userId}')\" class=\"btn-secondary\">Remove Friend</button>\n             <button onclick=\"showProfile('${userId}')\" class=\"btn-primary\">View Profile</button>` :\n            `<button onclick=\"addFriend('${userId}')\" class=\"btn-primary\">Add Friend</button>`\n        }\n    `;"
+      },
+      "remediation": null,
+      "tool": "semgrep",
+      "timestamp": "2025-12-15T21:51:47.874Z",
+      "tools": [
+        "semgrep"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "10a6c30102c5e93a",
+      "_fingerprintSource": "cwe:CWE-79||cat:A03||loc:file:/home/nillof/Exjobb/Claude2/my-social-site/app.js|line:619||vuln:code:card.innerhtml = ` <img src=${userdata.profilepicture || https://via.placeholder||title:dom xss"
+    },
+    {
+      "id": "VULN-012",
+      "category": "A03",
+      "cwe": "CWE-79",
+      "cweName": "Cross-site Scripting (XSS)",
+      "severity": "HIGH",
+      "title": "dom-xss-innerhtml",
+      "description": "innerHTML XSS. CWE-79",
+      "evidence": {
+        "file": "/home/nillof/Exjobb/Claude2/my-social-site/app.js",
+        "line": 712,
+        "endLine": 712,
+        "code": "document.getElementById('messageHeader').innerHTML = `<h3>Chat with ${friendName}</h3>`;"
+      },
+      "remediation": null,
+      "tool": "semgrep",
+      "timestamp": "2025-12-15T21:51:47.874Z",
+      "tools": [
+        "semgrep"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "2dd0811632d53fdc",
+      "_fingerprintSource": "cwe:CWE-79||cat:A03||loc:file:/home/nillof/Exjobb/Claude2/my-social-site/app.js|line:712||vuln:code:document.getelementbyid(messageheader).innerhtml = `<h3>chat with ${friendname}<||title:dom xss"
+    },
+    {
+      "id": "VULN-013",
+      "category": "A03",
+      "cwe": "CWE-79",
+      "cweName": "Cross-site Scripting (XSS)",
+      "severity": "HIGH",
+      "title": "dom-xss-innerhtml",
+      "description": "innerHTML XSS. CWE-79",
+      "evidence": {
+        "file": "/home/nillof/Exjobb/Claude2/my-social-site/app.js",
+        "line": 845
+      },
+      "remediation": null,
+      "tool": "semgrep",
+      "tools": [
+        "semgrep"
+      ],
+      "duplicateCount": 2,
+      "mergedFrom": [
+        {
+          "id": "VULN-014",
+          "tool": "semgrep",
+          "severity": "HIGH"
+        },
+        {
+          "id": "VULN-015",
+          "tool": "semgrep",
+          "severity": "HIGH"
+        }
+      ],
+      "timestamp": "2025-12-15T21:51:47.874Z",
+      "confirmed": false,
+      "_fingerprint": "4472c5af56e1fbe2",
+      "_fingerprintSource": "cwe:CWE-79||cat:A03||loc:file:/home/nillof/Exjobb/Claude2/my-social-site/app.js|line:845||vuln:code:resultdiv.innerhtml = ` <img src=${userdata.profilepicture || https://via.placeh||title:dom xss"
+    },
+    {
+      "id": "VULN-014",
+      "category": "A03",
+      "cwe": "CWE-79",
+      "cweName": "Cross-site Scripting (XSS)",
+      "severity": "HIGH",
+      "title": "dom-xss-innerhtml",
+      "description": "innerHTML XSS. CWE-79",
+      "evidence": {
+        "file": "/home/nillof/Exjobb/Claude2/my-social-site/app.js",
+        "line": 959,
+        "endLine": 964,
+        "code": "document.getElementById('referralCode').innerHTML = `\n            <p style=\"margin-top: 15px; padding: 10px; background: var(--surface); border-radius: 8px;\">\n                Your invite code: <strong>${code}</strong><br>\n                <small>Share this code with friends to earn points!</small>\n            </p>\n        `;"
+      },
+      "remediation": null,
+      "tool": "semgrep",
+      "timestamp": "2025-12-15T21:51:47.874Z",
+      "tools": [
+        "semgrep"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "7a774e054797d34f",
+      "_fingerprintSource": "cwe:CWE-79||cat:A03||loc:file:/home/nillof/Exjobb/Claude2/my-social-site/app.js|line:959||vuln:code:document.getelementbyid(referralcode).innerhtml = ` <p style=margin-top: 15px; p||title:dom xss"
+    },
+    {
+      "id": "VULN-015",
+      "category": "A03",
+      "cwe": "CWE-79",
+      "cweName": "Cross-site Scripting (XSS)",
+      "severity": "HIGH",
+      "title": "dom-xss-innerhtml",
+      "description": "innerHTML XSS. CWE-79",
+      "evidence": {
+        "file": "/home/nillof/Exjobb/Claude2/my-social-site/app.js",
+        "line": 1117,
+        "endLine": 1126,
+        "code": "userItem.innerHTML = `\n                <div>\n                    <strong>${userData.displayName}</strong><br>\n                    <small>${userData.email}</small>\n                    ${userData.isAdmin ? ' <span style=\"color: var(--primary-color);\">[ADMIN]</span>' : ''}\n                </div>\n                <div>\n                    <button onclick=\"adminDeleteUser('${userId}')\" class=\"btn-danger\">Delete User</button>\n                </div>\n            `;"
+      },
+      "remediation": null,
+      "tool": "semgrep",
+      "timestamp": "2025-12-15T21:51:47.874Z",
+      "tools": [
+        "semgrep"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "606221ba045aae40",
+      "_fingerprintSource": "cwe:CWE-79||cat:A03||loc:file:/home/nillof/Exjobb/Claude2/my-social-site/app.js|line:1117||vuln:code:useritem.innerhtml = ` <div> <strong>${userdata.displayname}</strong><br> <small||title:dom xss"
+    },
+    {
+      "id": "VULN-016",
+      "category": "A03",
+      "cwe": "CWE-79",
+      "cweName": "Cross-site Scripting (XSS)",
+      "severity": "HIGH",
+      "title": "dom-xss-innerhtml",
+      "description": "innerHTML XSS. CWE-79",
+      "evidence": {
+        "file": "/home/nillof/Exjobb/Claude2/my-social-site/app.js",
+        "line": 1157,
+        "endLine": 1165,
+        "code": "postItem.innerHTML = `\n                <div>\n                    <strong>${post.authorName}</strong><br>\n                    <small>${post.content ? post.content.substring(0, 100) : '[Image post]'}</small>\n                </div>\n                <div>\n                    <button onclick=\"adminDeletePost('${postId}')\" class=\"btn-danger\">Delete Post</button>\n                </div>\n            `;"
+      },
+      "remediation": null,
+      "tool": "semgrep",
+      "timestamp": "2025-12-15T21:51:47.874Z",
+      "tools": [
+        "semgrep"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "538d83db7f67ff1a",
+      "_fingerprintSource": "cwe:CWE-79||cat:A03||loc:file:/home/nillof/Exjobb/Claude2/my-social-site/app.js|line:1157||vuln:code:postitem.innerhtml = ` <div> <strong>${post.authorname}</strong><br> <small>${po||title:dom xss"
+    },
+    {
+      "id": "VULN-017",
+      "category": "A01",
+      "cwe": "CWE-668",
+      "cweName": "Unknown",
+      "severity": "MEDIUM",
+      "title": "Draft Content Exposed to Other Users",
+      "description": "Unpublished/draft content is accessible to users other than the author.",
+      "evidence": "bob456 accessed alice123's draft posts",
+      "remediation": "Add visibility check: allow read: if resource.data.status == \"published\" || request.auth.uid == resource.data.userId",
+      "tool": "firebase-emulator",
+      "timestamp": "2025-12-15T21:51:41.799Z",
+      "tools": [
+        "firebase-emulator"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "a20995916ac311eb",
+      "_fingerprintSource": "cwe:CWE-668||cat:A01||title:draft content exposed to other users"
+    },
+    {
+      "id": "VULN-018",
+      "category": "A02",
+      "cwe": "CWE-311",
+      "cweName": "Missing Encryption of Sensitive Data",
+      "severity": "MEDIUM",
+      "title": "Public Storage Access",
+      "description": "Storage files are publicly readable. Consider if this is necessary.",
+      "evidence": {
+        "rule": "allow read: if true"
+      },
+      "remediation": "Consider: allow read: if request.auth != null",
+      "tool": "static-analysis",
+      "timestamp": "2025-12-15T21:51:31.107Z",
+      "tools": [
+        "static-analysis"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "e49ef171d02d0e12",
+      "_fingerprintSource": "cwe:CWE-311||cat:A02||loc:rule:allow read: if true||vuln:rule:allow read: if true||title:public storage access"
+    },
+    {
+      "id": "VULN-019",
+      "category": "A02",
+      "cwe": "CWE-521",
+      "cweName": "Weak Password Requirements",
+      "severity": "MEDIUM",
+      "title": "Weak password policy",
+      "description": "Password field \"registerPassword\" has weak policy: no minimum length requirement (should be ≥8), no pattern for password complexity",
+      "evidence": null,
+      "remediation": null,
+      "tool": "crypto-scanner",
+      "tools": [
+        "crypto-scanner"
+      ],
+      "duplicateCount": 3,
+      "mergedFrom": [
+        {
+          "id": "VULN-021",
+          "tool": "crypto-scanner",
+          "severity": "MEDIUM"
+        },
+        {
+          "id": "VULN-022",
+          "tool": "crypto-scanner",
+          "severity": "MEDIUM"
+        },
+        {
+          "id": "VULN-023",
+          "tool": "crypto-scanner",
+          "severity": "MEDIUM"
+        }
+      ],
+      "timestamp": "2025-12-15T21:53:22.437Z",
+      "confirmed": false,
+      "_fingerprint": "f17a2819353daa70",
+      "_fingerprintSource": "cwe:CWE-521||cat:A02||title:weak password policy"
+    },
+    {
+      "id": "VULN-020",
+      "category": "A03",
+      "cwe": "CWE-434",
+      "cweName": "Unrestricted Upload of File with Dangerous Type",
+      "severity": "MEDIUM",
+      "title": "Missing File Type Validation in Storage Rules",
+      "description": "Storage rules do not validate file content type",
+      "evidence": null,
+      "remediation": "Add: && request.resource.contentType.matches('image/.*')",
+      "tool": "static-analysis",
+      "timestamp": "2025-12-15T21:51:31.107Z",
+      "tools": [
+        "static-analysis"
+      ],
+      "duplicateCount": 1,
+      "_fingerprint": "7a89ddfe7772272a",
+      "_fingerprintSource": "cwe:CWE-434||cat:A03||title:missing file type validation in storage rules"
+    }
+  ],
+  "cweCoverage": {
+    "A01_BrokenAccessControl": [
+      "CWE-22",
+      "CWE-23",
+      "CWE-200",
+      "CWE-201",
+      "CWE-219",
+      "CWE-264",
+      "CWE-275",
+      "CWE-276",
+      "CWE-284",
+      "CWE-285",
+      "CWE-352",
+      "CWE-359",
+      "CWE-425",
+      "CWE-441",
+      "CWE-497",
+      "CWE-538",
+      "CWE-540",
+      "CWE-548",
+      "CWE-552",
+      "CWE-566",
+      "CWE-601",
+      "CWE-639",
+      "CWE-651",
+      "CWE-668",
+      "CWE-706",
+      "CWE-862",
+      "CWE-863",
+      "CWE-913",
+      "CWE-922",
+      "CWE-1275"
+    ],
+    "A02_CryptographicFailures": [
+      "CWE-261",
+      "CWE-296",
+      "CWE-310",
+      "CWE-319",
+      "CWE-321",
+      "CWE-322",
+      "CWE-323",
+      "CWE-324",
+      "CWE-325",
+      "CWE-326",
+      "CWE-327",
+      "CWE-328",
+      "CWE-329",
+      "CWE-330",
+      "CWE-331",
+      "CWE-335",
+      "CWE-336",
+      "CWE-337",
+      "CWE-338",
+      "CWE-340",
+      "CWE-347",
+      "CWE-523",
+      "CWE-757",
+      "CWE-759",
+      "CWE-760",
+      "CWE-780",
+      "CWE-818",
+      "CWE-916"
+    ],
+    "A03_Injection": [
+      "CWE-20",
+      "CWE-74",
+      "CWE-75",
+      "CWE-77",
+      "CWE-78",
+      "CWE-79",
+      "CWE-80",
+      "CWE-83",
+      "CWE-87",
+      "CWE-88",
+      "CWE-89",
+      "CWE-90",
+      "CWE-91",
+      "CWE-93",
+      "CWE-94",
+      "CWE-95",
+      "CWE-96",
+      "CWE-97",
+      "CWE-98",
+      "CWE-99",
+      "CWE-113",
+      "CWE-116",
+      "CWE-138",
+      "CWE-184",
+      "CWE-470",
+      "CWE-471",
+      "CWE-564",
+      "CWE-610",
+      "CWE-643",
+      "CWE-644",
+      "CWE-652",
+      "CWE-917",
+      "CWE-943"
+    ]
+  }
+}

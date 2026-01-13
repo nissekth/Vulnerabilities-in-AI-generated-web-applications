@@ -1,0 +1,51 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+    function isAdmin() {
+      return isSignedIn() && exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['admin', 'owner'];
+    }
+    function isFriend(userId) {
+      return isSignedIn() && exists(/databases/$(database)/documents/friends/$(request.auth.uid)) &&
+             request.auth.uid in get(/databases/$(database)/documents/friends/$(userId)).data.friendIds;
+    }
+    match /users/{userId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && isOwner(userId);
+      allow update: if isOwner(userId) || isAdmin();
+      allow delete: if isOwner(userId) || isAdmin();
+    }
+    match /posts/{postId} {
+      allow read: if isSignedIn() && (resource.data.visibility == 'all' || isFriend(resource.data.userId) || isOwner(resource.data.userId) || isAdmin());
+      allow create: if isSignedIn();
+      allow update, delete: if isOwner(resource.data.userId) || isAdmin();
+    }
+    match /comments/{commentId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update, delete: if isOwner(resource.data.userId) || isAdmin();
+    }
+    match /friends/{userId} {
+      allow read: if isSignedIn();
+      allow write: if isOwner(userId);
+    }
+    match /messages/{messageId} {
+      allow read: if isSignedIn() && (request.auth.uid == resource.data.senderId || request.auth.uid == resource.data.receiverId);
+      allow create: if isSignedIn() && request.auth.uid == request.resource.data.senderId;
+      allow delete: if isOwner(resource.data.senderId) || isOwner(resource.data.receiverId);
+    }
+    match /referrals/{userId} {
+      allow read: if isOwner(userId);
+      allow write: if isOwner(userId);
+    }
+    match /statistics/{doc} {
+      allow read, write: if isAdmin();
+    }
+  }
+}

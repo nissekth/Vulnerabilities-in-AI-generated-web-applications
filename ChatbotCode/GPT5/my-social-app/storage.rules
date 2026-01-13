@@ -1,0 +1,27 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function signedIn() { return request.auth != null; }
+    function isOwner() { return signedIn() && request.auth.token.owner == true; }
+    function isAdmin() { return signedIn() && (request.auth.token.admin == true || request.auth.token.owner == true); }
+
+    // Firebase Storage rules can reference Firestore documents to enforce “friends-only”.
+    // Firebase docs show this pattern. :contentReference[oaicite:7]{index=7}
+    function isFriendOf(userId) {
+      return signedIn() &&
+        firestore.exists(/databases/(default)/documents/users/$(userId)/friends/$(request.auth.uid));
+    }
+
+    match /users/{userId}/{allPaths=**} {
+      allow write: if (signedIn() && request.auth.uid == userId) || isAdmin();
+
+      // Read:
+      // - owner can read own
+      // - admin can read all
+      // - friends can read (so friends-only posts can display images)
+      allow read: if (signedIn() && request.auth.uid == userId) || isAdmin() || isFriendOf(userId);
+    }
+  }
+}
+

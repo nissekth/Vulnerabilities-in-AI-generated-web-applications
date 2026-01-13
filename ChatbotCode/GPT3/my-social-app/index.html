@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>My Social App</title>
+  <link rel="stylesheet" href="styles.css">
+
+  <!-- Firebase compat SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-storage-compat.js"></script>
+</head>
+<body class="theme-light">
+  <!-- Main container -->
+  <div id="app-root">
+    
+    <!-- NAVBAR (shown when logged in) -->
+    <header id="main-header" class="hidden">
+      <div class="logo">My Social App</div>
+      <nav>
+        <button data-view="feed">Feed</button>
+        <button data-view="profile">My Profile</button>
+        <button data-view="friends">Friends</button>
+        <button data-view="messages">Messages</button>
+        <button data-view="settings">Settings</button>
+        <button data-view="billing">Billing</button>
+        <button data-view="admin" id="admin-nav" class="hidden">Admin</button>
+        <button data-view="owner" id="owner-nav" class="hidden">Owner</button>
+      </nav>
+      <div class="user-info">
+        <span id="nav-display-name"></span>
+        <button id="logout-btn">Log out</button>
+      </div>
+    </header>
+
+    <!-- WELCOME / AUTH (shown when NOT logged in) -->
+    <main id="auth-main">
+      <section id="welcome-section">
+        <h1>Welcome to My Social App</h1>
+        <p>Browse public profiles and posts. Log in or register to join, add friends and post.</p>
+
+        <!-- Public user search -->
+        <div id="public-search">
+          <h2>Search users</h2>
+          <input type="text" id="public-search-input" placeholder="Search by display name">
+          <button id="public-search-btn">Search</button>
+          <div id="public-search-results"></div>
+        </div>
+      </section>
+
+      <section id="auth-section">
+        <div class="auth-forms">
+          <!-- LOGIN FORM -->
+          <div class="card">
+            <h2>Login</h2>
+            <input type="email" id="login-email" placeholder="Email">
+            <input type="password" id="login-password" placeholder="Password">
+            <label>
+              <input type="checkbox" id="remember-me"> Remember me
+            </label>
+            <button id="login-btn">Login</button>
+            <button id="forgot-password-btn" class="link-btn">I forgot my password</button>
+            <p id="login-error" class="error"></p>
+          </div>
+
+          <!-- REGISTER FORM -->
+          <div class="card">
+            <h2>Register</h2>
+            <input type="text" id="register-display-name" placeholder="Display name">
+            <input type="number" id="register-age" placeholder="Age">
+            <input type="text" id="register-city" placeholder="City">
+            <input type="text" id="register-country" placeholder="Country">
+            <input type="email" id="register-email" placeholder="Email">
+            <input type="password" id="register-password" placeholder="Password">
+            <input type="text" id="register-referral-code" placeholder="Referral code (optional)">
+            <button id="register-btn">Create account</button>
+            <p id="register-error" class="error"></p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- APP MAIN (shown when logged in) -->
+    <main id="app-main" class="hidden">
+
+      <!-- FEED VIEW -->
+      <section id="view-feed" class="view">
+        <h2>Main feed</h2>
+
+        <!-- Post composer -->
+        <div class="card">
+          <textarea id="post-text" maxlength="280" placeholder="What's on your mind? (max 280 chars)"></textarea>
+          <div class="flex-row">
+            <label>
+              Visibility:
+              <select id="post-visibility">
+                <option value="public">Public</option>
+                <option value="friends">Friends only</option>
+              </select>
+            </label>
+            <label>
+              Album (optional):
+              <input type="text" id="post-album" placeholder="Album name">
+            </label>
+          </div>
+          <div class="flex-row">
+            <input type="file" id="post-image" accept="image/*">
+            <span id="post-char-counter">0/280</span>
+          </div>
+          <button id="post-submit-btn">Post</button>
+          <p id="post-error" class="error"></p>
+        </div>
+
+        <!-- Feed posts -->
+        <div id="feed-container"></div>
+      </section>
+
+      <!-- PROFILE VIEW -->
+      <section id="view-profile" class="view hidden">
+        <h2>My profile</h2>
+        <div class="card">
+          <div class="profile-header">
+            <img id="profile-picture" class="avatar-large" alt="Profile picture">
+            <div>
+              <h3 id="profile-display-name"></h3>
+              <p id="profile-basic-info"></p>
+              <p id="profile-about"></p>
+              <p>Banner: <span id="profile-banner"></span></p>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Edit profile</h3>
+          <input type="text" id="profile-edit-display-name" placeholder="Display name">
+          <input type="number" id="profile-edit-age" placeholder="Age">
+          <input type="text" id="profile-edit-city" placeholder="City">
+          <input type="text" id="profile-edit-country" placeholder="Country">
+          <textarea id="profile-edit-about" placeholder="About me"></textarea>
+          <label>
+            Banner:
+            <select id="profile-edit-banner">
+              <option value="default">Default</option>
+              <option value="mountains">Mountains</option>
+              <option value="ocean">Ocean</option>
+              <option value="city">City</option>
+            </select>
+          </label>
+          <label>
+            Profile picture:
+            <input type="file" id="profile-edit-picture" accept="image/*">
+          </label>
+          <button id="profile-save-btn">Save profile</button>
+          <p id="profile-save-msg" class="success"></p>
+        </div>
+
+        <!-- Profile gallery -->
+        <div class="card">
+          <h3>Photo gallery</h3>
+          <label>
+            Filter by album:
+            <input type="text" id="gallery-filter-album" placeholder="Album name (leave empty for all)">
+          </label>
+          <button id="gallery-refresh-btn">Refresh gallery</button>
+          <div id="gallery-container" class="gallery"></div>
+        </div>
+        
+        <!-- Profile posts -->
+	<div class="card">
+	  <h3>Posts</h3>
+	  <div id="profile-posts-container"></div>
+	</div>
+
+
+        <!-- Referrals -->
+        <div class="card">
+          <h3>Referral program</h3>
+          <p>Points: <span id="referral-points"></span></p>
+          <p>Invites created this month: <span id="referral-month-count"></span> / 5</p>
+          <label>
+            <input type="checkbox" id="referral-optin">
+            Participate in referral program
+          </label>
+          <div class="flex-row">
+            <button id="create-referral-btn">Create referral invite</button>
+            <button id="clear-referral-btn">Delete my referral data & opt-out</button>
+          </div>
+          <div id="referral-codes"></div>
+        </div>
+
+      </section>
+
+      <!-- FRIENDS VIEW -->
+      <section id="view-friends" class="view hidden">
+        <h2>Friends</h2>
+
+        <div class="card">
+          <h3>Search users</h3>
+          <input type="text" id="friend-search-input" placeholder="Search by display name">
+          <button id="friend-search-btn">Search</button>
+          <div id="friend-search-results"></div>
+        </div>
+
+        <div class="card">
+          <h3>My friends</h3>
+          <div id="friends-list"></div>
+        </div>
+
+        <div class="card">
+          <h3>People you may know (mutual friends)</h3>
+          <div id="friend-suggestions"></div>
+        </div>
+      </section>
+
+      <!-- MESSAGES VIEW -->
+      <section id="view-messages" class="view hidden">
+        <h2>Direct messages</h2>
+        <div class="card">
+          <h3>Your conversations</h3>
+          <div id="conversations-list"></div>
+        </div>
+        <div class="card">
+          <h3>Conversation</h3>
+          <div id="dm-current-with"></div>
+          <div id="messages-container" class="messages"></div>
+          <textarea id="dm-text" placeholder="Type a message"></textarea>
+          <button id="dm-send-btn">Send</button>
+        </div>
+      </section>
+
+      <!-- SETTINGS VIEW -->
+      <section id="view-settings" class="view hidden">
+        <h2>Settings</h2>
+
+        <div class="card">
+          <h3>Theme & layout</h3>
+          <label>
+            Theme:
+            <select id="theme-select">
+              <option value="light">Light</option>
+              <option value="dark">Dark</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="card">
+          <h3>Display name</h3>
+          <input type="text" id="settings-display-name" placeholder="Display name">
+          <button id="settings-display-name-save">Save</button>
+        </div>
+
+        <div class="card danger">
+          <h3>Download my data</h3>
+          <button id="download-data-btn">Download JSON</button>
+        </div>
+
+        <div class="card danger">
+          <h3>Delete my account</h3>
+          <p>This will delete your profile and posts. This cannot be undone.</p>
+          <button id="delete-account-btn">Delete my account</button>
+        </div>
+      </section>
+
+      <!-- BILLING VIEW -->
+      <section id="view-billing" class="view hidden">
+        <h2>Billing info</h2>
+        <div class="card">
+          <p>Payments are handled by another company; this page only stores your billing info.</p>
+          <input type="text" id="billing-name" placeholder="Billing name">
+          <textarea id="billing-address" placeholder="Billing address"></textarea>
+          <textarea id="billing-notes" placeholder="Notes (optional, e.g. external account ID)"></textarea>
+          <button id="billing-save-btn">Save billing info</button>
+          <p id="billing-save-msg" class="success"></p>
+        </div>
+      </section>
+
+      <!-- ADMIN VIEW (admin.html has a dedicated login version, but we also have a panel here) -->
+      <section id="view-admin" class="view hidden">
+        <h2>Admin panel</h2>
+        <p>Only admins and owner can see this.</p>
+        <div class="card">
+          <h3>All users</h3>
+          <div id="admin-users-list"></div>
+        </div>
+      </section>
+
+      <!-- OWNER VIEW -->
+      <section id="view-owner" class="view hidden">
+        <h2>Owner panel</h2>
+        <p>This page is only for the owner (you).</p>
+        <div class="card">
+          <h3>Stats</h3>
+          <p>Total users: <span id="stats-total-users"></span></p>
+          <p>Total posts: <span id="stats-total-posts"></span></p>
+        </div>
+
+        <div class="card">
+          <h3>Global settings</h3>
+          <label>
+            Site active:
+            <input type="checkbox" id="site-active-checkbox">
+          </label>
+          <button id="site-settings-save-btn">Save site settings</button>
+        </div>
+
+        <div class="card">
+          <h3>Admin management</h3>
+          <input type="text" id="admin-target-email" placeholder="User email to toggle admin">
+          <button id="toggle-admin-btn">Toggle admin role for user</button>
+          <p id="owner-admin-msg" class="success"></p>
+        </div>
+
+        <div class="card danger">
+          <h3>Owner safety tips</h3>
+          <ul>
+            <li>Keep at least two sign-in methods to this account (e.g. email + phone or backup email).</li>
+            <li>Write down your email & a backup recovery method somewhere safe.</li>
+            <li>Your “owner” status is tied to your internal Firebase user ID, so changing email won’t remove your owner rights.</li>
+          </ul>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="firebase-config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
+

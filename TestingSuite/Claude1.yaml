@@ -1,0 +1,326 @@
+# ============================================================================
+# OWASP TOP 10:2021 (A01-A03) SECURITY SCANNER CONFIGURATION
+# ============================================================================
+# 
+# HOW TO USE THIS FILE:
+# 1. Copy this file for each website you want to test:
+#    cp config.yaml mysite1.yaml
+#    cp config.yaml mysite2.yaml
+#
+# 2. Edit each copy with that website's specific details
+#
+# 3. Run the scanner with your config:
+#    ./run-scan.sh -c mysite1.yaml
+#    ./run-scan.sh -c mysite2.yaml
+#
+# ============================================================================
+# REQUIRED: Fill in all sections marked with "CHANGE THIS"
+# ============================================================================
+
+# Application Information
+app:
+  name: "Social Media App"
+  description: "Firebase SPA social media platform"
+  url: "https://claude1-f630a.web.app"
+  type: "spa"  # spa, traditional, api
+
+# Firebase Configuration
+firebase:
+  apiKey: "AIzaSyDSfdeFTvj7exA8d9rRs3ZXCb0Q252wFbE"
+  authDomain: "claude1-f630a.firebaseapp.com"
+  projectId: "claude1-f630a"
+  storageBucket: "claude1-f630a.firebasestorage.app"
+  messagingSenderId: "166856671312"
+  appId: "1:166856671312:web:701a3bc29d13803185d155"
+
+# Test Accounts (email/password authentication)
+# Define accounts with different privilege levels for access control testing
+accounts:
+  - id: "user"
+    email: "user@user.user"
+    password: "aaaaaa"
+    role: "user"
+    expectedPrivileges:
+      - "read_own_profile"
+      - "write_own_profile"
+      - "create_posts"
+      - "read_public_posts"
+  
+  - id: "admin"
+    email: "admin@admin.admin"
+    password: "aaaaaa"
+    role: "admin"
+    expectedPrivileges:
+      - "read_all_profiles"
+      - "delete_any_post"
+      - "manage_users"
+  
+  - id: "owner"
+    email: "owner@owner.owner"
+    password: "aaaaaa"
+    role: "owner"
+    expectedPrivileges:
+      - "full_access"
+      - "manage_admins"
+
+# Firestore Security Rules
+# Paste your firestore.rules content here
+firestoreRules: |
+  rules_version = '2';
+  service cloud.firestore {
+    match /databases/{database}/documents {
+      match /users/{userId} {
+        allow read: if true;
+        allow write: if request.auth != null && request.auth.uid == userId;
+        allow create: if request.auth != null;
+        allow update: if request.auth != null;
+      }
+      
+      match /posts/{postId} {
+        allow read: if true;
+        allow create: if request.auth != null;
+        allow update, delete: if request.auth != null && 
+          (request.auth.uid == resource.data.userId || 
+           get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true);
+      }
+      
+      match /messages/{messageId} {
+        allow read, write: if request.auth != null && 
+          request.auth.uid in resource.data.participants;
+        allow create: if request.auth != null;
+      }
+    }
+  }
+
+# Storage Security Rules
+# Paste your storage.rules content here
+storageRules: |
+  rules_version = '2';
+  service firebase.storage {
+    match /b/{bucket}/o {
+      match /profiles/{userId}/{allPaths=**} {
+        allow read: if true;
+        allow write: if request.auth != null && request.auth.uid == userId;
+      }
+      
+      match /posts/{userId}/{allPaths=**} {
+        allow read: if true;
+        allow write: if request.auth != null && request.auth.uid == userId;
+      }
+    }
+  }
+
+# Firestore Collections to Test
+collections:
+  - name: "users"
+    type: "user_data"
+    sensitiveFields:
+      - "email"
+      - "age"
+      - "city"
+      - "country"
+      - "friends"
+      - "friendRequests"
+      - "referralCode"
+    privilegeFields:
+      - "isAdmin"
+      - "isOwner"
+    ownerField: "uid"  # Field that identifies the document owner
+  
+  - name: "posts"
+    type: "content"
+    ownerField: "userId"
+    visibilityField: "visibility"
+  
+  - name: "messages"
+    type: "private"
+    participantsField: "participants"
+    senderField: "senderId"
+
+# Storage Paths to Test
+storagePaths:
+  - path: "profiles/{userId}"
+    public: true
+    ownerOnly: true
+  - path: "posts/{userId}"
+    public: true
+    ownerOnly: true
+
+# Source Code Path (for Semgrep analysis)
+# CHANGE THIS: Set to your app's source code directory
+# Path can be relative to this config file or absolute
+# Example: "./my-app/src" or "/home/user/projects/my-app/src"
+sourcePath: "/home/nillof/Exjobb/Claude1/social-media-app"
+
+# Scanner Configuration
+scanner:
+  # Which tests to run
+  tests:
+    staticRulesAnalysis: true
+    liveFirebaseTests: true
+    firestoreEmulatorTests: true
+    enhancedScans: true
+    semgrepAnalysis: true
+    zapScan: true
+    scaAnalysis: true
+    proofOfConcept: true
+  
+  # OWASP ZAP (zaproxy) Configuration
+  zap:
+    host: "localhost"
+    port: 8080
+    apiKey: "AIzaSyDSfdeFTvj7exA8d9rRs3ZXCb0Q252wFbE"  # Set in ZAP: Tools > Options > API > API Key
+    # For Firebase SPAs, AJAX Spider needs more time
+    ajaxSpider: true
+    ajaxSpiderTimeout: 180  # seconds (3 minutes for SPAs)
+    # Active scan timeout
+    activeScanTimeout: 1800  # seconds (30 minutes)
+  
+  # Browser-based Authenticated Scanning (Puppeteer + ZAP)
+  # Use this for SPAs where daemon ZAP finds nothing
+  browserScan:
+    enabled: false  # Set to true or use --browser flag
+    
+    # Login page path (if not on main page)
+    # Common examples: "/login", "/signin", "/auth/login"
+    loginPath: "/login"
+    
+    # Routes to visit after login (in addition to auto-discovery)
+    routes:
+      - "/"
+      - "/home"
+      - "/profile"
+      - "/settings"
+      - "/posts"
+      - "/messages"
+      - "/feed"
+    
+    # Custom login form selectors (only needed if auto-detection fails)
+    # Check ./reports/browser-login-failed.png to see what fields exist
+    # selectors:
+    #   email: "input[name='email']"
+    #   password: "input[name='password']"  
+    #   submit: "button[type='submit']"
+  
+  # Semgrep Configuration
+  semgrep:
+    # Custom rules file (included in package)
+    customRules: "./semgrep/CWE-tests.yaml"
+    # Additional Semgrep registry rules to use
+    registryRules:
+      - "p/owasp-top-ten"
+      - "p/security-audit"
+      - "p/javascript"
+      - "p/typescript"
+      - "p/react"
+  
+  # Report Configuration
+  reports:
+    outputDir: "./reports"
+    formats:
+      - "html"
+      - "json"
+      - "markdown"
+    includeEvidence: true
+    includeRemediation: true
+
+# CWE Coverage for OWASP Top 10:2021 A01-A03
+# This section defines which CWEs are tested for each category
+# The scanner will report findings against these specific CWEs
+cweCoverage:
+  A01_BrokenAccessControl:
+    - CWE-22   # Path Traversal
+    - CWE-23   # Relative Path Traversal
+    - CWE-200  # Exposure of Sensitive Information
+    - CWE-201  # Insertion of Sensitive Info Into Sent Data
+    - CWE-219  # Storage of File with Sensitive Data Under Web Root
+    - CWE-264  # Permissions, Privileges, and Access Controls
+    - CWE-275  # Permission Issues
+    - CWE-276  # Incorrect Default Permissions
+    - CWE-284  # Improper Access Control
+    - CWE-285  # Improper Authorization
+    - CWE-352  # Cross-Site Request Forgery (CSRF)
+    - CWE-359  # Exposure of Private Personal Information
+    - CWE-425  # Direct Request (Forced Browsing)
+    - CWE-441  # Unintended Proxy or Intermediary
+    - CWE-497  # Exposure of Sensitive System Information
+    - CWE-538  # Insertion of Sensitive Info into Externally-Accessible File
+    - CWE-540  # Inclusion of Sensitive Information in Source Code
+    - CWE-548  # Exposure of Information Through Directory Listing
+    - CWE-552  # Files or Directories Accessible to External Parties
+    - CWE-566  # Authorization Bypass Through User-Controlled SQL Primary Key
+    - CWE-601  # URL Redirection to Untrusted Site (Open Redirect)
+    - CWE-639  # Authorization Bypass Through User-Controlled Key (IDOR)
+    - CWE-651  # Exposure of WSDL File Containing Sensitive Information
+    - CWE-668  # Exposure of Resource to Wrong Sphere
+    - CWE-706  # Use of Incorrectly-Resolved Name or Reference
+    - CWE-862  # Missing Authorization
+    - CWE-863  # Incorrect Authorization
+    - CWE-913  # Improper Control of Dynamically-Managed Code Resources
+    - CWE-922  # Insecure Storage of Sensitive Information
+    - CWE-1275 # Sensitive Cookie with Improper SameSite Attribute
+  
+  A02_CryptographicFailures:
+    - CWE-261  # Weak Encoding for Password
+    - CWE-296  # Improper Following of a Certificate's Chain of Trust
+    - CWE-310  # Cryptographic Issues
+    - CWE-319  # Cleartext Transmission of Sensitive Information
+    - CWE-321  # Use of Hard-coded Cryptographic Key
+    - CWE-322  # Key Exchange without Entity Authentication
+    - CWE-323  # Reusing a Nonce, Key Pair in Encryption
+    - CWE-324  # Use of a Key Past its Expiration Date
+    - CWE-325  # Missing Cryptographic Step
+    - CWE-326  # Inadequate Encryption Strength
+    - CWE-327  # Use of a Broken or Risky Cryptographic Algorithm
+    - CWE-328  # Use of Weak Hash
+    - CWE-329  # Generation of Predictable IV with CBC Mode
+    - CWE-330  # Use of Insufficiently Random Values
+    - CWE-331  # Insufficient Entropy
+    - CWE-335  # Incorrect Usage of Seeds in PRNG
+    - CWE-336  # Same Seed in PRNG
+    - CWE-337  # Predictable Seed in PRNG
+    - CWE-338  # Use of Cryptographically Weak PRNG
+    - CWE-340  # Generation of Predictable Numbers or Identifiers
+    - CWE-347  # Improper Verification of Cryptographic Signature
+    - CWE-523  # Unprotected Transport of Credentials
+    - CWE-757  # Selection of Less-Secure Algorithm During Negotiation
+    - CWE-759  # Use of a One-Way Hash without a Salt
+    - CWE-760  # Use of a One-Way Hash with a Predictable Salt
+    - CWE-780  # Use of RSA Algorithm without OAEP
+    - CWE-818  # Insufficient Transport Layer Protection
+    - CWE-916  # Use of Password Hash With Insufficient Computational Effort
+  
+  A03_Injection:
+    - CWE-20   # Improper Input Validation
+    - CWE-74   # Improper Neutralization of Special Elements in Output
+    - CWE-75   # Failure to Sanitize Special Elements into a Different Plane
+    - CWE-77   # Command Injection
+    - CWE-78   # OS Command Injection
+    - CWE-79   # Cross-site Scripting (XSS)
+    - CWE-80   # Improper Neutralization of Script-Related HTML Tags
+    - CWE-83   # Improper Neutralization of Script in Attributes
+    - CWE-87   # Improper Neutralization of Alternate XSS Syntax
+    - CWE-88   # Improper Neutralization of Argument Delimiters
+    - CWE-89   # SQL Injection
+    - CWE-90   # LDAP Injection
+    - CWE-91   # XML Injection
+    - CWE-93   # CRLF Injection
+    - CWE-94   # Code Injection
+    - CWE-95   # Eval Injection
+    - CWE-96   # Improper Neutralization of Directives in Statically Saved Code
+    - CWE-97   # Improper Neutralization of Server-Side Includes
+    - CWE-98   # Improper Control of Filename for Include/Require Statement
+    - CWE-99   # Improper Control of Resource Identifiers
+    - CWE-113  # HTTP Response Splitting
+    - CWE-116  # Improper Encoding or Escaping of Output
+    - CWE-138  # Improper Neutralization of Special Elements
+    - CWE-184  # Incomplete List of Disallowed Inputs
+    - CWE-470  # Use of Externally-Controlled Input to Select Classes or Code
+    - CWE-471  # Modification of Assumed-Immutable Data
+    - CWE-564  # SQL Injection: Hibernate
+    - CWE-610  # Externally Controlled Reference to a Resource
+    - CWE-643  # XPath Injection
+    - CWE-644  # Improper Neutralization of HTTP Headers for Scripting Syntax
+    - CWE-652  # XQuery Injection
+    - CWE-917  # Expression Language Injection
+    - CWE-943  # NoSQL Injection

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin - My Social App</title>
+  <link rel="stylesheet" href="styles.css">
+
+  <!-- Firebase compat SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-storage-compat.js"></script>
+</head>
+<body class="theme-light">
+  <div id="app-root">
+    <main id="admin-auth-main">
+      <section class="card">
+        <h1>Admin login</h1>
+        <p>This page is intended only for admins/owner.</p>
+        <input type="email" id="admin-login-email" placeholder="Email">
+        <input type="password" id="admin-login-password" placeholder="Password">
+        <button id="admin-login-btn">Login as admin</button>
+        <p id="admin-login-error" class="error"></p>
+        <p>
+          Regular users should use the
+          <a href="index.html">main site</a>.
+        </p>
+      </section>
+
+      <section id="admin-panel" class="hidden">
+        <header id="main-header">
+          <div class="logo">My Social App - Admin</div>
+          <button id="admin-logout-btn">Log out</button>
+        </header>
+
+        <section id="view-admin">
+          <h2>Admin panel</h2>
+          <p>Only admins/owner can see this.</p>
+          <div class="card">
+            <h3>All users</h3>
+            <div id="admin-users-list"></div>
+          </div>
+        </section>
+      </section>
+    </main>
+  </div>
+
+  <script src="firebase-config.js"></script>
+  <script src="app.js"></script>
+  <script>
+    // Simple bootstrap to reuse admin logic from app.js
+    window.IS_ADMIN_PAGE = true;
+  </script>
+</body>
+</html>
+

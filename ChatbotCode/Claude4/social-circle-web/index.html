@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Social Circle - Connect with Friends</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Welcome/Login Page -->
+        <div id="welcomePage" class="page active">
+            <div class="hero-section">
+                <div class="hero-content">
+                    <h1 class="logo">Social Circle</h1>
+                    <p class="tagline">Connect, Share, and Build Your Circle</p>
+                    
+                    <div class="welcome-actions">
+                        <button onclick="showLogin()" class="btn btn-primary">Log In</button>
+                        <button onclick="showRegister()" class="btn btn-outline">Sign Up</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Public Search Section -->
+            <div class="public-search-section">
+                <h2>Discover People</h2>
+                <div class="search-container">
+                    <input type="text" id="publicSearchInput" placeholder="Search for users..." class="search-input">
+                    <button onclick="searchUsersPublic()" class="btn btn-search">Search</button>
+                </div>
+                <div id="publicSearchResults" class="search-results"></div>
+            </div>
+        </div>
+
+        <!-- Login Modal -->
+        <div id="loginModal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="closeModal('loginModal')">&times;</span>
+                <h2>Welcome Back</h2>
+                <form onsubmit="login(event)" class="auth-form">
+                    <input type="email" id="loginEmail" placeholder="Email" required>
+                    <input type="password" id="loginPassword" placeholder="Password" required>
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="rememberMe">
+                        <span>Remember me</span>
+                    </label>
+                    <button type="submit" class="btn btn-primary btn-full">Log In</button>
+                    <div class="auth-links">
+                        <a href="#" onclick="showForgotPassword()">Forgot password?</a>
+                        <a href="#" onclick="closeModal('loginModal'); showRegister()">Need an account?</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Register Modal -->
+        <div id="registerModal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="closeModal('registerModal')">&times;</span>
+                <h2>Join Social Circle</h2>
+                <form onsubmit="register(event)" class="auth-form">
+                    <input type="text" id="regName" placeholder="Full Name" required>
+                    <input type="email" id="regEmail" placeholder="Email" required>
+                    <input type="password" id="regPassword" placeholder="Password (min 6 characters)" required minlength="6">
+                    <input type="text" id="regInviteCode" placeholder="Invite Code (optional)">
+                    <button type="submit" class="btn btn-primary btn-full">Create Account</button>
+                    <div class="auth-links">
+                        <a href="#" onclick="closeModal('registerModal'); showLogin()">Already have an account?</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Forgot Password Modal -->
+        <div id="forgotPasswordModal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="closeModal('forgotPasswordModal')">&times;</span>
+                <h2>Reset Password</h2>
+                <form onsubmit="resetPassword(event)" class="auth-form">
+                    <p>Enter your email address and we'll send you a password reset link.</p>
+                    <input type="email" id="resetEmail" placeholder="Email" required>
+                    <button type="submit" class="btn btn-primary btn-full">Send Reset Link</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Main App (shown after login) -->
+        <div id="mainApp" class="page">
+            <nav class="navbar">
+                <div class="nav-brand">
+                    <h1 class="logo-small">Social Circle</h1>
+                </div>
+                <div class="nav-links">
+                    <a href="#" onclick="showPage('feedPage')" class="nav-link active" data-page="feedPage">
+                        <span class="nav-icon">🏠</span> Feed
+                    </a>
+                    <a href="#" onclick="showPage('profilePage')" class="nav-link" data-page="profilePage">
+                        <span class="nav-icon">👤</span> Profile
+                    </a>
+                    <a href="#" onclick="showPage('friendsPage')" class="nav-link" data-page="friendsPage">
+                        <span class="nav-icon">👥</span> Friends
+                    </a>
+                    <a href="#" onclick="showPage('messagesPage')" class="nav-link" data-page="messagesPage">
+                        <span class="nav-icon">💬</span> Messages
+                    </a>
+                    <a href="#" onclick="showPage('searchPage')" class="nav-link" data-page="searchPage">
+                        <span class="nav-icon">🔍</span> Search
+                    </a>
+                    <a href="#" onclick="showPage('settingsPage')" class="nav-link" data-page="settingsPage">
+                        <span class="nav-icon">⚙️</span> Settings
+                    </a>
+                    <a href="#" id="adminNavLink" onclick="showPage('adminPage')" class="nav-link admin-only" data-page="adminPage" style="display:none;">
+                        <span class="nav-icon">🛡️</span> Admin
+                    </a>
+                    <a href="#" id="ownerNavLink" onclick="showPage('ownerPage')" class="nav-link owner-only" data-page="ownerPage" style="display:none;">
+                        <span class="nav-icon">👑</span> Owner
+                    </a>
+                </div>
+                <div class="nav-user">
+                    <span id="navUsername" class="username"></span>
+                    <button onclick="logout()" class="btn btn-small">Log Out</button>
+                </div>
+            </nav>
+
+            <!-- Feed Page -->
+            <div id="feedPage" class="content-page active">
+                <div class="feed-container">
+                    <div class="create-post-card">
+                        <h3>What's on your mind?</h3>
+                        <form onsubmit="createPost(event)">
+                            <textarea id="postContent" placeholder="Share something... (max 280 characters)" maxlength="280" rows="3"></textarea>
+                            <div class="post-options">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="friendsOnly">
+                                    <span>Friends only</span>
+                                </label>
+                                <input type="file" id="postImage" accept="image/*" style="display:none">
+                                <button type="button" onclick="document.getElementById('postImage').click()" class="btn btn-outline btn-small">📷 Add Photo</button>
+                                <button type="submit" class="btn btn-primary btn-small">Post</button>
+                            </div>
+                            <div id="imagePreview"></div>
+                        </form>
+                    </div>
+                    <div id="feedPosts" class="posts-container"></div>
+                </div>
+            </div>
+
+            <!-- Profile Page -->
+            <div id="profilePage" class="content-page">
+                <div class="profile-container">
+                    <div id="profileBanner" class="profile-banner"></div>
+                    <div class="profile-header">
+                        <div class="profile-pic-wrapper">
+                            <img id="profilePic" src="" alt="Profile" class="profile-pic">
+                            <button onclick="changeProfilePic()" class="btn btn-small edit-pic-btn">Edit</button>
+                        </div>
+                        <div class="profile-info">
+                            <h2 id="profileName"></h2>
+                            <p id="profileDetails"></p>
+                        </div>
+                        <button onclick="editProfile()" class="btn btn-outline">Edit Profile</button>
+                    </div>
+                    <div class="profile-about">
+                        <h3>About Me</h3>
+                        <p id="profileAbout"></p>
+                    </div>
+                    <div class="profile-tabs">
+                        <button onclick="showProfileTab('posts')" class="tab-btn active">Posts</button>
+                        <button onclick="showProfileTab('gallery')" class="tab-btn">Gallery</button>
+                    </div>
+                    <div id="profilePosts" class="profile-tab-content active"></div>
+                    <div id="profileGallery" class="profile-tab-content gallery-grid"></div>
+                </div>
+            </div>
+
+            <!-- Friends Page -->
+            <div id="friendsPage" class="content-page">
+                <div class="friends-container">
+                    <h2>My Friends</h2>
+                    <div id="friendsList" class="friends-grid"></div>
+                    <h3>People You May Know</h3>
+                    <div id="suggestedFriends" class="friends-grid"></div>
+                </div>
+            </div>
+
+            <!-- Messages Page -->
+            <div id="messagesPage" class="content-page">
+                <div class="messages-layout">
+                    <div class="conversations-list">
+                        <h3>Messages</h3>
+                        <div id="conversationsList"></div>
+                    </div>
+                    <div class="message-thread">
+                        <div id="messageHeader"></div>
+                        <div id="messagesList" class="messages-container"></div>
+                        <form onsubmit="sendMessage(event)" class="message-input-form">
+                            <input type="text" id="messageInput" placeholder="Type a message...">
+                            <button type="submit" class="btn btn-primary">Send</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Search Page -->
+            <div id="searchPage" class="content-page">
+                <div class="search-container-page">
+                    <h2>Search Users</h2>
+                    <input type="text" id="searchInput" placeholder="Search by name..." class="search-input">
+                    <button onclick="searchUsers()" class="btn btn-primary">Search</button>
+                    <div id="searchResults" class="search-results"></div>
+                </div>
+            </div>
+
+            <!-- Settings Page -->
+            <div id="settingsPage" class="content-page">
+                <div class="settings-container">
+                    <h2>Settings</h2>
+                    
+                    <div class="settings-section">
+                        <h3>Theme Settings</h3>
+                        <label>Choose Theme:</label>
+                        <select id="themeSelect" onchange="changeTheme()">
+                            <option value="default">Default Blue</option>
+                            <option value="dark">Dark Mode</option>
+                            <option value="sunset">Sunset Orange</option>
+                            <option value="forest">Forest Green</option>
+                            <option value="lavender">Lavender Dreams</option>
+                        </select>
+                    </div>
+
+                    <div class="settings-section">
+                        <h3>Display Name</h3>
+                        <input type="text" id="displayNameInput" placeholder="Your display name">
+                        <button onclick="updateDisplayName()" class="btn btn-primary">Update Display Name</button>
+                    </div>
+
+                    <div class="settings-section">
+                        <h3>Referral Program</h3>
+                        <p>Invite friends and earn points! You can create up to 5 invite codes per month.</p>
+                        <button onclick="generateInviteCode()" class="btn btn-outline">Generate Invite Code</button>
+                        <div id="inviteCodes"></div>
+                        <p>Your referral points: <span id="referralPoints">0</span></p>
+                        <button onclick="optOutReferrals()" class="btn btn-small">Opt Out of Referral Program</button>
+                    </div>
+
+                    <div class="settings-section">
+                        <h3>Billing Information</h3>
+                        <p>Manage your billing details:</p>
+                        <input type="text" id="billingName" placeholder="Billing Name">
+                        <input type="text" id="billingAddress" placeholder="Billing Address">
+                        <button onclick="updateBilling()" class="btn btn-outline">Update Billing Info</button>
+                    </div>
+
+                    <div class="settings-section">
+                        <h3>Data Management</h3>
+                        <button onclick="downloadData()" class="btn btn-outline">Download My Data</button>
+                    </div>
+
+                    <div class="settings-section danger-zone">
+                        <h3>Danger Zone</h3>
+                        <button onclick="deleteAccount()" class="btn btn-danger">Delete Account</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Admin Page -->
+            <div id="adminPage" class="content-page admin-only">
+                <div class="admin-container">
+                    <h2>Admin Dashboard</h2>
+                    <div class="admin-section">
+                        <h3>All Users</h3>
+                        <div id="adminUsersList"></div>
+                    </div>
+                    <div class="admin-section">
+                        <h3>All Admins</h3>
+                        <div id="adminAdminsList"></div>
+                    </div>
+                    <div class="admin-section">
+                        <h3>Moderate Posts</h3>
+                        <div id="adminPostsList"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Owner Page -->
+            <div id="ownerPage" class="content-page owner-only">
+                <div class="owner-container">
+                    <h2>Owner Dashboard</h2>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <h3>Total Users</h3>
+                            <p id="totalUsers" class="stat-number">0</p>
+                        </div>
+                        <div class="stat-card">
+                            <h3>Total Posts</h3>
+                            <p id="totalPosts" class="stat-number">0</p>
+                        </div>
+                        <div class="stat-card">
+                            <h3>Active Today</h3>
+                            <p id="activeToday" class="stat-number">0</p>
+                        </div>
+                    </div>
+                    <div class="owner-actions">
+                        <h3>Site Management</h3>
+                        <button onclick="exportAllData()" class="btn btn-outline">Export All Data</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Profile Edit Modal -->
+        <div id="editProfileModal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="closeModal('editProfileModal')">&times;</span>
+                <h2>Edit Profile</h2>
+                <form onsubmit="saveProfile(event)" class="profile-form">
+                    <input type="text" id="editName" placeholder="Full Name">
+                    <input type="number" id="editAge" placeholder="Age" min="13" max="120">
+                    <input type="text" id="editCity" placeholder="City">
+                    <input type="text" id="editCountry" placeholder="Country">
+                    <textarea id="editAbout" placeholder="About me (max 500 characters)" maxlength="500" rows="4"></textarea>
+                    <label>Choose Banner:</label>
+                    <select id="bannerSelect">
+                        <option value="gradient1">Blue Gradient</option>
+                        <option value="gradient2">Sunset</option>
+                        <option value="gradient3">Forest</option>
+                        <option value="gradient4">Ocean</option>
+                        <option value="gradient5">Purple Dreams</option>
+                    </select>
+                    <button type="submit" class="btn btn-primary btn-full">Save Changes</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- View Profile Modal (for other users) -->
+        <div id="viewProfileModal" class="modal">
+            <div class="modal-content large">
+                <span class="close" onclick="closeModal('viewProfileModal')">&times;</span>
+                <div id="viewProfileContent"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
+
+    <!-- App Scripts -->
+    <script src="config.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
